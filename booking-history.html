@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Bookings — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <a href="map.html" class="nav-link-plain">Discover</a>
+      <a href="owner-dashboard.html" class="nav-link-plain">Dashboard</a>
+      <div class="nav-avatar" id="navAvatar">U</div>
+    </div>
+  </nav>
+
+  <!-- CONTAINER -->
+  <div class="history-container">
+
+    <!-- HEADER -->
+    <div class="history-header">
+      <div>
+        <h1>My Bookings</h1>
+        <p>Track all your amenity bookings and their payment status</p>
+      </div>
+      <a href="map.html" class="btn-primary">+ Book New Amenity</a>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="history-stats">
+      <div class="hs-card">
+        <div class="hs-icon" style="background:#dbeafe;">📅</div>
+        <div class="hs-info">
+          <div class="hs-value" id="totalBookingsCount">0</div>
+          <div class="hs-label">Total Bookings</div>
+        </div>
+      </div>
+      <div class="hs-card">
+        <div class="hs-icon" style="background:#dcfce7;">✅</div>
+        <div class="hs-info">
+          <div class="hs-value" id="completedCount">0</div>
+          <div class="hs-label">Completed</div>
+        </div>
+      </div>
+      <div class="hs-card">
+        <div class="hs-icon" style="background:#fef9c3;">🔒</div>
+        <div class="hs-info">
+          <div class="hs-value" id="pendingCount">0</div>
+          <div class="hs-label">Payment Held</div>
+        </div>
+      </div>
+      <div class="hs-card">
+        <div class="hs-icon" style="background:#fee2e2;">💰</div>
+        <div class="hs-info">
+          <div class="hs-value" id="totalSpent">₹0</div>
+          <div class="hs-label">Total Spent</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs" style="margin-bottom:20px;">
+      <button class="filter-tab active"
+        onclick="filterHistory('all', this)">
+        All Bookings
+      </button>
+      <button class="filter-tab"
+        onclick="filterHistory('payment_held', this)">
+        🔒 Payment Held
+      </button>
+      <button class="filter-tab"
+        onclick="filterHistory('funds_released', this)">
+        ✅ Completed
+      </button>
+      <button class="filter-tab"
+        onclick="filterHistory('refunded', this)">
+        🔄 Refunded
+      </button>
+    </div>
+
+    <!-- BOOKINGS LIST -->
+    <div id="bookingsList">
+      <div class="history-empty" id="emptyState">
+        <div class="history-empty-icon">📅</div>
+        <h2>No bookings yet</h2>
+        <p>
+          You haven't made any bookings yet.
+          Browse amenities near you and make your first booking!
+        </p>
+        <a href="map.html" class="btn-primary" style="margin-top:20px;">
+          Browse Amenities
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  let allBookings = [];
+  let currentFilter = 'all';
+
+  window.addEventListener('load', () => {
+    loadBookings();
+  });
+
+  // ── LOAD FROM FIRESTORE ──
+  async function loadBookings() {
+    const container = document.getElementById('bookingsList');
+    container.innerHTML = '<div class="history-empty"><div class="loading-spinner"></div><p>Loading your bookings...</p></div>';
+
+    try {
+      allBookings = await getMyBookings();
+      updateStats();
+      renderBookings();
+    } catch (err) {
+      container.innerHTML = `<div class="history-empty"><p>Failed to load bookings: ${err.message}</p></div>`;
+    }
+  }
+
+  // ── STATS ──
+  function updateStats() {
+    const total     = allBookings.length;
+    const completed = allBookings.filter(b => b.status === 'funds_released').length;
+    const pending   = allBookings.filter(b => b.status === 'payment_held').length;
+    const spent     = allBookings.filter(b => b.status !== 'refunded').reduce((sum, b) => sum + b.total, 0);
+
+    document.getElementById('totalBookingsCount').textContent = total;
+    document.getElementById('completedCount').textContent     = completed;
+    document.getElementById('pendingCount').textContent       = pending;
+    document.getElementById('totalSpent').textContent         = '₹' + spent;
+  }
+
+  // ── FILTER ──
+  function filterHistory(status, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = status;
+    renderBookings();
+  }
+
+  // ── RENDER ──
+  function renderBookings() {
+    const filtered = currentFilter === 'all'
+      ? allBookings
+      : allBookings.filter(b => b.status === currentFilter);
+
+    const container = document.getElementById('bookingsList');
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="history-empty">
+          <div class="history-empty-icon">🔍</div>
+          <h2>No bookings found</h2>
+          <p>No bookings match this filter.</p>
+        </div>`;
+      return;
+    }
+
+    const EMOJI = { pool:'🏊', gym:'🏋️', theater:'🎬', garden:'🌿', sauna:'🧖', gameroom:'🎮' };
+
+    container.innerHTML = filtered.map(b => `
+      <div class="booking-history-card" id="bhc-${b.id}">
+        <div class="bhc-left">
+          <div class="bhc-emoji">${EMOJI[b.type] || '🏠'}</div>
+          <div class="bhc-info">
+            <div class="bhc-title">${b.listingTitle || b.title || 'Booking'}</div>
+            <div class="bhc-meta">
+              📅 ${formatDate(b.date)} &nbsp;•&nbsp;
+              🕐 ${b.slot}
+            </div>
+            <div class="bhc-sub">
+              ⏱️ ${b.duration} hr${b.duration > 1 ? 's' : ''} &nbsp;•&nbsp;
+              👥 ${b.guests} guest${b.guests > 1 ? 's' : ''}
+            </div>
+            <div class="bhc-id">Booking ID: ${b.id}</div>
+          </div>
+        </div>
+        <div class="bhc-right">
+          <div class="bhc-amount">₹${b.total}</div>
+          ${statusBadge(b.status)}
+          <div class="bhc-actions">
+            ${b.status === 'payment_held' ? `
+              <button class="bhc-btn confirm" onclick="confirmArrivalAction('${b.id}')">✅ Confirm Arrival</button>
+              <button class="bhc-btn report" onclick="reportFakeAction('${b.id}')">🚩 Report Fake</button>
+            ` : ''}
+            ${b.status === 'funds_released' ? `
+              <button class="bhc-btn review" onclick="leaveReview('${b.id}')">⭐ Leave Review</button>
+              <button class="bhc-btn rebook" onclick="rebook('${b.id}')">🔄 Book Again</button>
+            ` : ''}
+            ${b.status === 'refunded' ? `
+              <div class="bhc-refund-note">Refund processed to your account</div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── STATUS BADGE ──
+  function statusBadge(status) {
+    const map = {
+      payment_held:   { label: '🔒 Payment Held', cls: 'badge-held' },
+      funds_released: { label: '✅ Completed',    cls: 'badge-released' },
+      refunded:       { label: '🔄 Refunded',     cls: 'badge-refunded' },
+    };
+    const s = map[status] || { label: status, cls: '' };
+    return `<span class="status-badge ${s.cls}">${s.label}</span>`;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+  }
+
+  // ── CONFIRM ARRIVAL ──
+  async function confirmArrivalAction(id) {
+    if (!confirm('Confirm that you have arrived?\n\nThis will release the payment to the owner.')) return;
+    try {
+      await confirmArrival_db(id);
+      const b = allBookings.find(b => b.id === id);
+      if (b) b.status = 'funds_released';
+      updateStats();
+      renderBookings();
+      showToast('✅ Arrival confirmed! Funds released to owner.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  // ── REPORT FAKE ──
+  async function reportFakeAction(id) {
+    if (!confirm('Report this listing as fake?\n\nYour payment will be immediately refunded.')) return;
+    try {
+      const b = allBookings.find(b => b.id === id);
+      await reportFakeListing_db(id, b ? b.listingId : '', 'Fake or misrepresented listing');
+      if (b) b.status = 'refunded';
+      updateStats();
+      renderBookings();
+      showToast('🔄 Report submitted. Refund processing — 2-3 business days.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  function leaveReview(id) { showToast('⭐ Review feature coming soon!'); }
+
+  function rebook(id) {
+    const b = allBookings.find(b => b.id === id);
+    if (b) window.location.href = `listing-detail.html?id=${b.listingId}`;
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+  }
+</script>
+
+  
+</body>
+</html>

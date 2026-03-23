@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <div class="admin-badge">🛡️ Admin Panel</div>
+      <div class="nav-avatar" id="navAvatar">A</div>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-profile">
+        <div class="sidebar-avatar" style="background:#dc2626;">A</div>
+        <div class="sidebar-info">
+          <div class="sidebar-name">Admin</div>
+          <div class="sidebar-role" style="color:#f87171;">
+            Super Admin
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active"
+          onclick="showAdminSection('overview', this)">
+          <span>📊</span> Overview
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('users', this)">
+          <span>👥</span> All Users
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('listings', this)">
+          <span>🏠</span> All Listings
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('bookings', this)">
+          <span>📅</span> All Bookings
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('reports', this)">
+          <span>🚩</span> Fraud Reports
+          <span class="sidebar-badge" id="reportsBadge">2</span>
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('kyc', this)">
+          <span>🪪</span> KYC Reviews
+          <span class="sidebar-badge" id="kycBadge">3</span>
+        </a>
+      </nav>
+
+      <button class="sidebar-logout" id="logoutBtn">
+        🚪 Logout
+      </button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="dashboard-main">
+
+      <!-- ── OVERVIEW ── -->
+      <section id="overview" class="dash-section active">
+        <div class="dash-header">
+          <div>
+            <h1>Platform Overview</h1>
+            <p>Real-time stats across MicroLease</p>
+          </div>
+          <div class="admin-live-badge">
+            <span class="live-dot"></span> Live Data
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#dbeafe;">👥</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminTotalUsers">0</div>
+              <div class="stat-card-label">Total Users</div>
+            </div>
+            <div class="stat-card-trend up">↑ 14%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#dcfce7;">🏠</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminTotalListings">0</div>
+              <div class="stat-card-label">Active Listings</div>
+            </div>
+            <div class="stat-card-trend up">↑ 8%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fef9c3;">📅</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminTotalBookings">0</div>
+              <div class="stat-card-label">Total Bookings</div>
+            </div>
+            <div class="stat-card-trend up">↑ 22%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fce7f3;">💰</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminRevenue">₹0</div>
+              <div class="stat-card-label">Platform Revenue</div>
+            </div>
+            <div class="stat-card-trend up">↑ 31%</div>
+          </div>
+        </div>
+
+        <!-- SECOND ROW STATS -->
+        <div class="stats-grid"
+          style="grid-template-columns:repeat(3,1fr); margin-top:0;">
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fee2e2;">🚩</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminReports">2</div>
+              <div class="stat-card-label">Open Fraud Reports</div>
+            </div>
+            <div class="stat-card-trend down">Needs Review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fef9c3;">🪪</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminKYC">3</div>
+              <div class="stat-card-label">Pending KYC Reviews</div>
+            </div>
+            <div class="stat-card-trend down">Needs Review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#dcfce7;">🔒</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminEscrow">₹0</div>
+              <div class="stat-card-label">Funds in Escrow</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h2>Recent Activity</h2>
+            <span class="dash-card-link">Live feed</span>
+          </div>
+          <div class="activity-feed" id="activityFeed">
+            <div class="activity-item">
+              <div class="activity-icon new-user">👤</div>
+              <div class="activity-info">
+                <strong>New user registered</strong>
+                <span>Priya M. signed up as a renter</span>
+              </div>
+              <div class="activity-time">2 min ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon new-booking">📅</div>
+              <div class="activity-info">
+                <strong>New booking made</strong>
+                <span>Rooftop Pool — ₹1,097 held in escrow</span>
+              </div>
+              <div class="activity-time">8 min ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon kyc-submitted">🪪</div>
+              <div class="activity-info">
+                <strong>KYC submitted</strong>
+                <span>Rahul S. submitted verification documents</span>
+              </div>
+              <div class="activity-time">15 min ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon fraud-report">🚩</div>
+              <div class="activity-info">
+                <strong>Fraud report filed</strong>
+                <span>Listing ML-004 reported as fake</span>
+              </div>
+              <div class="activity-time">1 hr ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon payment-released">💰</div>
+              <div class="activity-info">
+                <strong>Payment released</strong>
+                <span>₹549 released to owner after arrival confirmation</span>
+              </div>
+              <div class="activity-time">2 hr ago</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── USERS ── -->
+      <section id="users" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>All Users</h1>
+            <p>Every real account on MicroLease</p>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="userSearch"
+              placeholder="Search users..."
+              oninput="searchUsers(this.value)"/>
+          </div>
+        </div>
+
+        <!-- USER FILTER -->
+        <div class="filter-tabs" style="margin-bottom:16px;">
+          <button class="filter-tab active"
+            onclick="filterUsers('all', this)">All</button>
+          <button class="filter-tab"
+            onclick="filterUsers('owner', this)">Owners</button>
+          <button class="filter-tab"
+            onclick="filterUsers('user', this)">Renters</button>
+          <button class="filter-tab"
+            onclick="filterUsers('verified', this)">Verified</button>
+          <button class="filter-tab"
+            onclick="filterUsers('flagged', this)">
+            🚩 Flagged
+          </button>
+        </div>
+
+        <div class="dash-card" style="padding:0;">
+          <table class="bookings-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Bookings</th>
+                <th>KYC Status</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr class="empty-row">
+                <td colspan="7">
+                  Loading users... (connects to Firestore in next phase)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── LISTINGS ── -->
+      <section id="listings" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>All Listings</h1>
+            <p>Every amenity listed on MicroLease</p>
+          </div>
+          <div class="admin-search">
+            <input type="text" placeholder="Search listings..."/>
+          </div>
+        </div>
+
+        <div class="filter-tabs" style="margin-bottom:16px;">
+          <button class="filter-tab active">All</button>
+          <button class="filter-tab">✅ Active</button>
+          <button class="filter-tab">⏸️ Paused</button>
+          <button class="filter-tab">🚩 Flagged</button>
+        </div>
+
+        <div class="dash-card" style="padding:0;">
+          <table class="bookings-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>Listing</th>
+                <th>Owner</th>
+                <th>Type</th>
+                <th>Price</th>
+                <th>Bookings</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="listingsTableBody">
+              <tr class="empty-row">
+                <td colspan="7">
+                  Loading listings... (connects to Firestore in next phase)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── BOOKINGS ── -->
+      <section id="bookings" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>All Bookings</h1>
+            <p>Every transaction on the platform</p>
+          </div>
+        </div>
+
+        <div class="filter-tabs" style="margin-bottom:16px;">
+          <button class="filter-tab active"
+            onclick="filterAdminBookings('all', this)">All</button>
+          <button class="filter-tab"
+            onclick="filterAdminBookings('payment_held', this)">
+            🔒 Held
+          </button>
+          <button class="filter-tab"
+            onclick="filterAdminBookings('funds_released', this)">
+            ✅ Released
+          </button>
+          <button class="filter-tab"
+            onclick="filterAdminBookings('refunded', this)">
+            🔄 Refunded
+          </button>
+        </div>
+
+        <div class="dash-card" style="padding:0;">
+          <table class="bookings-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>User</th>
+                <th>Listing</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Escrow Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminBookingsBody">
+              <tr class="empty-row">
+                <td colspan="7">
+                  Loading bookings... (connects to Firestore in next phase)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── FRAUD REPORTS ── -->
+      <section id="reports" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>Fraud Reports</h1>
+            <p>User-reported fake or misrepresented listings</p>
+          </div>
+        </div>
+
+        <!-- DEMO REPORTS -->
+        <div class="report-card urgent">
+          <div class="report-header">
+            <div class="report-priority urgent-badge">🔴 Urgent</div>
+            <div class="report-id">Report #FR-001</div>
+            <div class="report-time">Filed 1 hour ago</div>
+          </div>
+          <div class="report-body">
+            <div class="report-detail">
+              <span class="rd-label">Reported Listing</span>
+              <span class="rd-value">Rooftop Pool — Banjara Hills</span>
+            </div>
+            <div class="report-detail">
+              <span class="rd-label">Reported By</span>
+              <span class="rd-value">Arjun K. (user@email.com)</span>
+            </div>
+            <div class="report-detail">
+              <span class="rd-label">Reason</span>
+              <span class="rd-value">
+                Listing photos do not match actual location.
+                Pool does not exist at the given address.
+              </span>
+            </div>
+            <div class="report-detail">
+              <span class="rd-label">Amount at Risk</span>
+              <span class="rd-value" style="color:#dc2626; font-weight:700;">
+                ₹1,097 in escrow
+              </span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="admin-action-btn refund"
+              onclick="processRefund('FR-001')">
+              🔄 Process Refund & Ban Owner
+            </button>
+            <button class="admin-action-btn investigate"
+              onclick="markInvestigating('FR-001')">
+              🔍 Mark as Investigating
+            </button>
+            <button class="admin-action-btn dismiss"
+              onclick="dismissReport('FR-001')">
+              ✕ Dismiss Report
+            </button>
+          </div>
+        </div>
+
+        <div class="report-card">
+          <div class="report-header">
+            <div class="report-priority">🟡 Medium</div>
+            <div class="report-id">Report #FR-002</div>
+            <div class="report-time">Filed 3 hours ago</div>
+          </div>
+          <div class="report-body">
+            <div class="report-detail">
+              <span class="rd-label">Reported Listing</span>
+              <span class="rd-value">Private Gym — Madhapur</span>
+            </div>
+            <div class="report-detail">
+              <span class="rd-label">Reported By</span>
+              <span class="rd-value">Sneha R. (sneha@email.com)</span>
+            </div>
+            <div class="report-detail">
+              <span class="rd-label">Reason</span>
+              <span class="rd-value">
+                Equipment shown in photos is outdated.
+                Several machines are broken and not as described.
+              </span>
+            </div>
+            <div class="report-detail">
+              <span class="rd-label">Amount at Risk</span>
+              <span class="rd-value" style="color:#dc2626; font-weight:700;">
+                ₹219 in escrow
+              </span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="admin-action-btn refund"
+              onclick="processRefund('FR-002')">
+              🔄 Process Refund & Ban Owner
+            </button>
+            <button class="admin-action-btn investigate"
+              onclick="markInvestigating('FR-002')">
+              🔍 Mark as Investigating
+            </button>
+            <button class="admin-action-btn dismiss"
+              onclick="dismissReport('FR-002')">
+              ✕ Dismiss Report
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── KYC REVIEWS ── -->
+      <section id="kyc" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>KYC Reviews</h1>
+            <p>Pending identity verifications requiring manual review</p>
+          </div>
+        </div>
+
+        <div class="kyc-review-list" id="kycReviewList">
+
+          <div class="kyc-review-card" id="kyc-001">
+            <div class="kyc-review-header">
+              <div class="kyc-review-avatar">R</div>
+              <div class="kyc-review-info">
+                <div class="kyc-review-name">Rahul Sharma</div>
+                <div class="kyc-review-meta">
+                  rahul@email.com • Submitted 20 min ago
+                </div>
+              </div>
+              <span class="status-badge badge-held">⏳ Pending</span>
+            </div>
+
+            <div class="kyc-docs-row">
+              <div class="kyc-doc-preview">
+                <div class="kdp-label">ID Document</div>
+                <div class="kdp-img">🪪<br/>
+                  <small>Aadhaar Card</small>
+                </div>
+              </div>
+              <div class="kyc-match-arrow">↔️</div>
+              <div class="kyc-doc-preview">
+                <div class="kdp-label">Live Selfie</div>
+                <div class="kdp-img">🤳<br/>
+                  <small>Captured live</small>
+                </div>
+              </div>
+              <div class="kyc-match-result">
+                <div class="kmr-score">94%</div>
+                <div class="kmr-label">Face Match Score</div>
+                <div class="kmr-status good">✅ High Confidence</div>
+              </div>
+            </div>
+
+            <div class="kyc-review-actions">
+              <button class="admin-action-btn approve"
+                onclick="approveKYC('kyc-001')">
+                ✅ Approve & Verify
+              </button>
+              <button class="admin-action-btn reject"
+                onclick="rejectKYC('kyc-001')">
+                ❌ Reject
+              </button>
+            </div>
+          </div>
+
+          <div class="kyc-review-card" id="kyc-002">
+            <div class="kyc-review-header">
+              <div class="kyc-review-avatar">S</div>
+              <div class="kyc-review-info">
+                <div class="kyc-review-name">Sneha Reddy</div>
+                <div class="kyc-review-meta">
+                  sneha@email.com • Submitted 45 min ago
+                </div>
+              </div>
+              <span class="status-badge badge-held">⏳ Pending</span>
+            </div>
+
+            <div class="kyc-docs-row">
+              <div class="kyc-doc-preview">
+                <div class="kdp-label">ID Document</div>
+                <div class="kdp-img">📘<br/>
+                  <small>Passport</small>
+                </div>
+              </div>
+              <div class="kyc-match-arrow">↔️</div>
+              <div class="kyc-doc-preview">
+                <div class="kdp-label">Live Selfie</div>
+                <div class="kdp-img">🤳<br/>
+                  <small>Captured live</small>
+                </div>
+              </div>
+              <div class="kyc-match-result">
+                <div class="kmr-score">71%</div>
+                <div class="kmr-label">Face Match Score</div>
+                <div class="kmr-status warning">⚠️ Low Confidence</div>
+              </div>
+            </div>
+
+            <div class="kyc-review-actions">
+              <button class="admin-action-btn approve"
+                onclick="approveKYC('kyc-002')">
+                ✅ Approve & Verify
+              </button>
+              <button class="admin-action-btn reject"
+                onclick="rejectKYC('kyc-002')">
+                ❌ Reject
+              </button>
+            </div>
+          </div>
+
+          <div class="kyc-review-card" id="kyc-003">
+            <div class="kyc-review-header">
+              <div class="kyc-review-avatar">A</div>
+              <div class="kyc-review-info">
+                <div class="kyc-review-name">Arjun Kumar</div>
+                <div class="kyc-review-meta">
+                  arjun@email.com • Submitted 1 hr ago
+                </div>
+              </div>
+              <span class="status-badge badge-held">⏳ Pending</span>
+            </div>
+
+            <div class="kyc-docs-row">
+              <div class="kyc-doc-preview">
+                <div class="kdp-label">ID Document</div>
+                <div class="kdp-img">🚗<br/>
+                  <small>Driving Licence</small>
+                </div>
+              </div>
+              <div class="kyc-match-arrow">↔️</div>
+              <div class="kyc-doc-preview">
+                <div class="kdp-label">Live Selfie</div>
+                <div class="kdp-img">🤳<br/>
+                  <small>Captured live</small>
+                </div>
+              </div>
+              <div class="kyc-match-result">
+                <div class="kmr-score">88%</div>
+                <div class="kmr-label">Face Match Score</div>
+                <div class="kmr-status good">✅ High Confidence</div>
+              </div>
+            </div>
+
+            <div class="kyc-review-actions">
+              <button class="admin-action-btn approve"
+                onclick="approveKYC('kyc-003')">
+                ✅ Approve & Verify
+              </button>
+              <button class="admin-action-btn reject"
+                onclick="rejectKYC('kyc-003')">
+                ❌ Reject
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+ <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  let allUsers = [];
+  let allAdminBookings = [];
+  let allReports = [];
+  let currentUserFilter = 'all';
+
+  // ── INIT ──
+  window.addEventListener('load', async () => {
+    await loadAdminDashboard();
+  });
+
+  async function loadAdminDashboard() {
+    try {
+      [allUsers, allAdminBookings, allReports] = await Promise.all([
+        adminGetAllUsers(),
+        adminGetAllBookings(),
+        adminGetAllReports()
+      ]);
+      updateAdminStats();
+      renderUsersTable(allUsers);
+      renderAdminBookings();
+      renderReports();
+    } catch (err) {
+      showToast('❌ Failed to load admin data: ' + err.message);
+    }
+  }
+
+  // ── STATS ──
+  function updateAdminStats() {
+    const revenue = allAdminBookings
+      .filter(b => b.status === 'funds_released')
+      .reduce((sum, b) => sum + b.total, 0);
+    const escrow = allAdminBookings
+      .filter(b => b.status === 'payment_held')
+      .reduce((sum, b) => sum + b.total, 0);
+
+    if (document.getElementById('adminTotalUsers'))
+      document.getElementById('adminTotalUsers').textContent = allUsers.length;
+    if (document.getElementById('adminTotalBookings'))
+      document.getElementById('adminTotalBookings').textContent = allAdminBookings.length;
+    if (document.getElementById('adminRevenue'))
+      document.getElementById('adminRevenue').textContent = '₹' + revenue;
+    if (document.getElementById('adminEscrow'))
+      document.getElementById('adminEscrow').textContent = '₹' + escrow;
+  }
+
+  // ── USERS TABLE ──
+  function renderUsersTable(users) {
+    const filtered = currentUserFilter === 'all'
+      ? users
+      : users.filter(u => u.role === currentUserFilter || u.banned === (currentUserFilter === 'banned'));
+
+    const tbody = document.getElementById('usersTableBody');
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No users found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(u => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="user-table-avatar">${(u.name || 'U').charAt(0)}</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;">${u.name || '—'}</div>
+              <div style="font-size:11px;color:#9ca3af;">${u.email}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="role-pill ${u.role}">
+            ${u.role === 'owner' ? '🏠 Owner' : '🔍 Renter'}
+          </span>
+        </td>
+        <td style="font-size:13px;color:#6b7280;">
+          ${u.createdAt ? new Date(u.createdAt.toDate ? u.createdAt.toDate() : u.createdAt).toLocaleDateString('en-IN', {month:'short',year:'numeric'}) : '—'}
+        </td>
+        <td style="font-size:13px;font-weight:700;">
+          ${allAdminBookings.filter(b => b.userId === u.uid).length}
+        </td>
+        <td>${kycBadge(u.kycStatus || (u.role === 'user' ? 'not required' : 'pending'))}</td>
+        <td>${userStatusBadge(u.banned ? 'banned' : 'active')}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            ${!u.banned ? `
+              <button class="admin-action-btn dismiss"
+                style="padding:5px 10px;font-size:11px;"
+                onclick="banUserAction('${u.uid}', '${u.email}')">
+                Ban
+              </button>` : '<span style="font-size:12px;color:#9ca3af;">Banned</span>'}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── ADMIN BOOKINGS ──
+  function renderAdminBookings() {
+    const container = document.getElementById('bookingsTableBody');
+    if (!container) return;
+    if (!allAdminBookings.length) {
+      container.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:#6b7280;">No bookings yet.</td></tr>`;
+      return;
+    }
+    container.innerHTML = allAdminBookings.map(b => `
+      <tr>
+        <td>${b.userName || 'Guest'}</td>
+        <td>${b.listingTitle || '—'}</td>
+        <td>${formatDate(b.date)}<br><small>${b.slot}</small></td>
+        <td>${b.duration} hr${b.duration > 1 ? 's' : ''}</td>
+        <td>₹${b.total}</td>
+        <td>${statusBadge(b.status)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── REPORTS ──
+  function renderReports() {
+    const container = document.getElementById('reportsContainer');
+    if (!container) return;
+    if (!allReports.length) {
+      container.innerHTML = `<div class="dash-empty"><p>No fraud reports yet.</p></div>`;
+      return;
+    }
+    container.innerHTML = allReports.map(r => `
+      <div class="report-card" id="report-${r.id}">
+        <div class="report-header">
+          <span class="report-id">#${r.id.slice(-6).toUpperCase()}</span>
+          ${statusBadge(r.status)}
+        </div>
+        <div class="report-body">
+          <p><strong>Reason:</strong> ${r.reason}</p>
+          <p><strong>Booking:</strong> ${r.bookingId}</p>
+          <p><strong>Reported:</strong> ${formatDate(r.createdAt)}</p>
+        </div>
+        ${r.status === 'pending' ? `
+        <div class="kyc-review-actions">
+          <button class="admin-action-btn investigate"
+            onclick="resolveReportAction('${r.id}')">
+            ✅ Resolve
+          </button>
+          <button class="admin-action-btn dismiss"
+            onclick="dismissReportAction('${r.id}')">
+            ✕ Dismiss
+          </button>
+        </div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // ── SECTION NAV ──
+  function showAdminSection(id, link) {
+    document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (link) link.classList.add('active');
+  }
+
+  // ── FILTER USERS ──
+  function filterUsers(type, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    currentUserFilter = type;
+    renderUsersTable(allUsers);
+  }
+
+  function searchUsers(query) {
+    const q = query.toLowerCase();
+    const filtered = allUsers.filter(u =>
+      (u.name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q)
+    );
+    renderUsersTable(filtered);
+  }
+
+  // ── BAN USER ──
+  async function banUserAction(uid, email) {
+    if (!confirm(`Ban user ${email}?\n\nThis will prevent them from using MicroLease.`)) return;
+    try {
+      await adminBanUser(uid);
+      const u = allUsers.find(u => u.uid === uid);
+      if (u) u.banned = true;
+      renderUsersTable(allUsers);
+      showToast('🚫 User ' + email + ' has been banned.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  // ── RESOLVE REPORT ──
+  async function resolveReportAction(reportId) {
+    if (!confirm('Mark this report as resolved?')) return;
+    try {
+      await adminResolveReport(reportId);
+      const r = allReports.find(r => r.id === reportId);
+      if (r) r.status = 'resolved';
+      renderReports();
+      showToast('✅ Report resolved.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  function dismissReportAction(reportId) {
+    if (confirm('Dismiss this report?')) {
+      showToast('✕ Report dismissed.');
+      const card = document.getElementById('report-' + reportId);
+      if (card) card.style.opacity = '0.5';
+    }
+  }
+
+  function filterAdminBookings(status, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ── BADGES ──
+  function kycBadge(status) {
+    const map = {
+      verified:       '<span class="status-badge badge-released">✓ Verified</span>',
+      pending:        '<span class="status-badge badge-held">⏳ Pending</span>',
+      rejected:       '<span class="status-badge badge-refunded">✕ Rejected</span>',
+      'not required': '<span style="font-size:12px;color:#9ca3af;">N/A</span>',
+    };
+    return map[status] || status;
+  }
+
+  function userStatusBadge(status) {
+    const map = {
+      active:  '<span class="status-badge badge-released">Active</span>',
+      flagged: '<span class="status-badge badge-held">🚩 Flagged</span>',
+      banned:  '<span class="status-badge badge-refunded">Banned</span>',
+    };
+    return map[status] || status;
+  }
+
+  function statusBadge(status) {
+    const map = {
+      payment_held:   { label: '🔒 Payment Held', cls: 'badge-held'     },
+      funds_released: { label: '✅ Completed',    cls: 'badge-released' },
+      refunded:       { label: '🔄 Refunded',     cls: 'badge-refunded' },
+      pending:        { label: '⏳ Pending',       cls: 'badge-held'     },
+      resolved:       { label: '✅ Resolved',      cls: 'badge-released' },
+    };
+    const s = map[status] || { label: status, cls: '' };
+    return `<span class="status-badge ${s.cls}">${s.label}</span>`;
+  }
+
+  function formatDate(val) {
+    if (!val) return '—';
+    const d = val.toDate ? val.toDate() : new Date(val);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+  }
+</script>
+
+  
+</body>
+</html>

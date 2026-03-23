@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discover Amenities — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="map-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <a href="booking-history.html" class="nav-link-plain">My Bookings</a>
+      <a href="owner-dashboard.html" class="nav-link-plain">Dashboard</a>
+      <div class="nav-avatar" id="navAvatar">U</div>
+    </div>
+  </nav>
+
+  <!-- MAP LAYOUT -->
+  <div class="map-layout">
+
+    <!-- LEFT PANEL: FILTERS + LISTINGS -->
+    <div class="map-sidebar">
+
+      <!-- SEARCH -->
+      <div class="map-search-box">
+        <span class="map-search-icon">🔍</span>
+        <input type="text" id="searchInput"
+          placeholder="Search by area, amenity type..."
+          oninput="filterListings()"/>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="map-filters">
+        <div class="filter-scroll">
+          <button class="map-filter-btn active" onclick="setTypeFilter('all', this)">
+            All
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('pool', this)">
+            🏊 Pool
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('gym', this)">
+            🏋️ Gym
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('theater', this)">
+            🎬 Theater
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('garden', this)">
+            🌿 Garden
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('sauna', this)">
+            🧖 Sauna
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('gameroom', this)">
+            🎮 Game Room
+          </button>
+        </div>
+      </div>
+
+      <!-- PRICE FILTER -->
+      <div class="price-filter-row">
+        <span class="price-filter-label">Max price:</span>
+        <input type="range" id="priceRange" min="100" max="5000"
+          value="5000" step="100" oninput="updatePriceFilter(this.value)"/>
+        <span class="price-filter-value" id="priceValue">₹5000/hr</span>
+      </div>
+
+      <!-- RESULTS COUNT -->
+      <div class="results-count">
+        <span id="resultsCount">0 amenities</span> near you
+        <button class="sort-btn" onclick="toggleSort()">
+          ⇅ <span id="sortLabel">Nearest</span>
+        </button>
+      </div>
+
+      <!-- LISTINGS LIST -->
+      <div class="map-listings-list" id="listingsList">
+        <div class="map-loading">
+          <div class="loading-spinner"></div>
+          <p>Finding amenities near you...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: MAP -->
+    <div class="map-container">
+      <div id="googleMap"></div>
+
+      <!-- MAP CONTROLS -->
+      <div class="map-controls">
+        <button class="map-control-btn" onclick="centerOnUser()" title="My Location">
+          📍
+        </button>
+        <button class="map-control-btn" onclick="toggleMapType()" title="Satellite View">
+          🛰️
+        </button>
+      </div>
+
+      <!-- LISTING POPUP (shows when pin clicked) -->
+      <div class="map-popup" id="mapPopup" style="display:none">
+        <button class="popup-close" onclick="closePopup()">✕</button>
+        <div class="popup-photo" id="popupPhoto">🏊</div>
+        <div class="popup-body">
+          <div class="popup-type" id="popupType">Pool</div>
+          <div class="popup-title" id="popupTitle">Listing Title</div>
+          <div class="popup-meta">
+            <span id="popupLocation">📍 Area</span>
+            <span id="popupDistance">• 0.0 km</span>
+          </div>
+          <div class="popup-price" id="popupPrice">₹499/hr</div>
+          <div class="popup-badges">
+            <span class="popup-badge verified">✓ Verified</span>
+            <span class="popup-badge instant" id="popupInstant">⚡ Instant</span>
+          </div>
+          <a href="listing-detail.html" class="btn-primary btn-full popup-btn"
+            id="popupLink">
+            View Details →
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DEMO LISTINGS DATA (will be replaced by Firestore later) -->
+ <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  let allListings = [];
+  let filteredListings = [];
+  let activeTypeFilter = 'all';
+  let maxPrice = 5000;
+  let searchQuery = '';
+  let sortNearest = true;
+  let map = null;
+  let markers = [];
+  let mapType = 'roadmap';
+  let userLat = 17.4350;
+  let userLng = 78.3866;
+
+  const EMOJI = { pool:'🏊', gym:'🏋️', theater:'🎬', garden:'🌿', sauna:'🧖', gameroom:'🎮' };
+
+  // ── LOAD FROM FIRESTORE ──
+  async function loadListings() {
+    try {
+      allListings = await getAllListings();
+      // Add distance field based on user location
+      allListings = allListings.map(l => ({
+        ...l,
+        emoji: EMOJI[l.type] || '🏠',
+        distance: calcDistance(userLat, userLng, l.lat, l.lng)
+      }));
+      filteredListings = [...allListings];
+      filterListings();
+    } catch (err) {
+      document.getElementById('listingsList').innerHTML =
+        `<div class="map-empty"><p>Failed to load listings: ${err.message}</p></div>`;
+    }
+  }
+
+  function calcDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+  }
+
+  // ── FILTER LOGIC ──
+  function filterListings() {
+    searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    filteredListings = allListings.filter(l => {
+      const matchType   = activeTypeFilter === 'all' || l.type === activeTypeFilter;
+      const matchPrice  = l.price <= maxPrice;
+      const matchSearch = !searchQuery ||
+        l.title.toLowerCase().includes(searchQuery) ||
+        (l.area || '').toLowerCase().includes(searchQuery) ||
+        l.type.toLowerCase().includes(searchQuery);
+      return matchType && matchPrice && matchSearch;
+    });
+    if (sortNearest) {
+      filteredListings.sort((a, b) => a.distance - b.distance);
+    } else {
+      filteredListings.sort((a, b) => a.price - b.price);
+    }
+    renderListings();
+    updateMarkers();
+  }
+
+  function setTypeFilter(type, btn) {
+    document.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTypeFilter = type;
+    filterListings();
+  }
+
+  function updatePriceFilter(val) {
+    maxPrice = parseInt(val);
+    document.getElementById('priceValue').textContent =
+      val >= 5000 ? 'Any' : '₹' + val + '/hr';
+    filterListings();
+  }
+
+  function toggleSort() {
+    sortNearest = !sortNearest;
+    document.getElementById('sortLabel').textContent = sortNearest ? 'Nearest' : 'Cheapest';
+    filterListings();
+  }
+
+  // ── RENDER LISTING CARDS ──
+  function renderListings() {
+    const container = document.getElementById('listingsList');
+    document.getElementById('resultsCount').textContent =
+      filteredListings.length + ' amenit' + (filteredListings.length === 1 ? 'y' : 'ies');
+
+    if (filteredListings.length === 0) {
+      container.innerHTML = `
+        <div class="map-empty">
+          <div style="font-size:40px;">😕</div>
+          <h3>No amenities found</h3>
+          <p>Try adjusting your filters or search term</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filteredListings.map(l => `
+      <div class="map-listing-card" onclick="selectListing('${l.id}')" id="card-${l.id}">
+        <div class="mlc-photo">${l.emoji}</div>
+        <div class="mlc-body">
+          <div class="mlc-type">${l.emoji} ${l.type.charAt(0).toUpperCase() + l.type.slice(1)}</div>
+          <div class="mlc-title">${l.title}</div>
+          <div class="mlc-meta">
+            <span>📍 ${l.area || l.city}</span>
+            <span>• ${l.distance} km</span>
+            <span>• 👥 Up to ${l.guests}</span>
+          </div>
+          <div class="mlc-footer">
+            <div class="mlc-price">₹${l.price}<span>/hr</span></div>
+          </div>
+          <div class="mlc-badges">
+            ${l.verified ? '<span class="mlc-badge verified">✓ Verified</span>' : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── SELECT LISTING ──
+  function selectListing(id) {
+    const listing = allListings.find(l => l.id === id);
+    if (!listing) return;
+    document.querySelectorAll('.map-listing-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('card-' + id);
+    if (card) card.classList.add('selected');
+    document.getElementById('popupPhoto').textContent    = listing.emoji;
+    document.getElementById('popupType').textContent     = listing.type.charAt(0).toUpperCase() + listing.type.slice(1);
+    document.getElementById('popupTitle').textContent    = listing.title;
+    document.getElementById('popupLocation').textContent = '📍 ' + (listing.area || listing.city);
+    document.getElementById('popupDistance').textContent = '• ' + listing.distance + ' km away';
+    document.getElementById('popupPrice').textContent    = '₹' + listing.price + '/hr';
+    document.getElementById('popupInstant').style.display = 'inline';
+    document.getElementById('popupLink').href = `listing-detail.html?id=${listing.id}`;
+    document.getElementById('mapPopup').style.display = 'block';
+    if (map) map.panTo({ lat: listing.lat, lng: listing.lng });
+  }
+
+  function closePopup() {
+    document.getElementById('mapPopup').style.display = 'none';
+    document.querySelectorAll('.map-listing-card').forEach(c => c.classList.remove('selected'));
+  }
+
+  // ── GOOGLE MAPS ──
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('googleMap'), {
+      center: { lat: userLat, lng: userLng },
+      zoom: 13,
+      mapTypeId: 'roadmap',
+      styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }],
+      disableDefaultUI: true,
+      zoomControl: true,
+      zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+    });
+    new google.maps.Marker({
+      position: { lat: userLat, lng: userLng },
+      map,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10,
+        fillColor: '#1a56db', fillOpacity: 1, strokeColor: 'white', strokeWeight: 3 },
+      title: 'You are here', zIndex: 999,
+    });
+    updateMarkers();
+    getUserLocation();
+  }
+
+  function updateMarkers() {
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+    if (!map) return;
+    filteredListings.forEach(listing => {
+      const marker = new google.maps.Marker({
+        position: { lat: Number(listing.lat), lng: Number(listing.lng) },
+        map,
+        label: { text: listing.emoji + ' ₹' + listing.price, className: 'map-marker-label' },
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 },
+        title: listing.title,
+      });
+      marker.addListener('click', () => selectListing(listing.id));
+      markers.push(marker);
+    });
+  }
+
+  function centerOnUser() { if (map) map.panTo({ lat: userLat, lng: userLng }); }
+
+  function toggleMapType() {
+    if (!map) return;
+    mapType = mapType === 'roadmap' ? 'satellite' : 'roadmap';
+    map.setMapTypeId(mapType);
+  }
+
+  function getUserLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      if (map) map.panTo({ lat: userLat, lng: userLng });
+      // Recalculate distances with real location
+      allListings = allListings.map(l => ({
+        ...l, distance: calcDistance(userLat, userLng, l.lat, l.lng)
+      }));
+      filterListings();
+    });
+  }
+
+  // ── INIT ──
+  window.addEventListener('load', () => {
+    loadListings();
+    if (typeof google === 'undefined') {
+      document.getElementById('googleMap').innerHTML = `
+        <div class="map-placeholder">
+          <div style="font-size:48px;">🗺️</div>
+          <h3>Map loads here</h3>
+          <p>Add your Google Maps API key to enable the map</p>
+        </div>`;
+    }
+  });
+
+  window.initMap = initMap;
+</script>
+
+  <!--
+    GOOGLE MAPS SCRIPT
+    Replace YOUR_API_KEY with your actual key when we get to that step.
+    For now the map shows a placeholder.
+  -->
+  <script>
+    // Placeholder until API key is added
+    window.initMap = initMap;
+  </script>
+  <!-- <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script> -->
+
+  
+</body>
+</html>

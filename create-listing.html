@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Listing — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <a href="owner-dashboard.html" class="btn-outline">← Back to Dashboard</a>
+      <div class="nav-avatar" id="navAvatar">A</div>
+    </div>
+  </nav>
+
+  <!-- CONTAINER -->
+  <div class="create-listing-container">
+
+    <!-- LEFT: FORM -->
+    <div class="create-listing-form">
+
+      <!-- PROGRESS -->
+      <div class="cl-progress">
+        <div class="cl-step active" id="clStep1">
+          <span class="cl-step-num">1</span>
+          <span class="cl-step-label">Basic Info</span>
+        </div>
+        <div class="cl-step-line"></div>
+        <div class="cl-step" id="clStep2">
+          <span class="cl-step-num">2</span>
+          <span class="cl-step-label">Location</span>
+        </div>
+        <div class="cl-step-line"></div>
+        <div class="cl-step" id="clStep3">
+          <span class="cl-step-num">3</span>
+          <span class="cl-step-label">Photos</span>
+        </div>
+        <div class="cl-step-line"></div>
+        <div class="cl-step" id="clStep4">
+          <span class="cl-step-num">4</span>
+          <span class="cl-step-label">Pricing</span>
+        </div>
+      </div>
+
+      <!-- STEP 1: BASIC INFO -->
+      <div class="cl-card" id="clCard1">
+        <div class="cl-card-header">
+          <h2>Basic Information</h2>
+          <p>Tell us about your amenity</p>
+        </div>
+
+        <div class="auth-form">
+          <div class="form-group">
+            <label>Amenity Type</label>
+            <div class="amenity-type-grid">
+  <button class="amenity-type-btn active" onclick="selectAmenityType(this, 'pool')">
+    🏊 Pool
+  </button>
+  <button class="amenity-type-btn" onclick="selectAmenityType(this, 'gym')">
+    🏋️ Gym
+  </button>
+  <button class="amenity-type-btn" onclick="selectAmenityType(this, 'theater')">
+    🎬 Theater
+  </button>
+  <button class="amenity-type-btn" onclick="selectAmenityType(this, 'garden')">
+    🌿 Garden
+  </button>
+  <button class="amenity-type-btn" onclick="selectAmenityType(this, 'sauna')">
+    🧖 Sauna
+  </button>
+  <button class="amenity-type-btn" onclick="selectAmenityType(this, 'gameroom')">
+    🎮 Game Room
+  </button>
+  <button class="amenity-type-btn" id="customTypeBtn" onclick="selectAmenityType(this, 'custom')">
+    ✏️ Other
+  </button>
+</div>
+
+<!-- CUSTOM TYPE INPUT — hidden until Other is selected -->
+<div class="custom-type-wrapper" id="customTypeWrapper" style="display:none;">
+  <div class="form-group" style="margin-top:10px;">
+    <label for="customTypeName">Describe your amenity</label>
+    <input type="text" id="customTypeName"
+      placeholder="e.g. Pottery Studio, Archery Range, Rooftop Terrace..."
+      oninput="updateCustomType(this.value)"/>
+    <span class="input-hint">Be specific — this is what users will see</span>
+  </div>
+</div>
+
+<input type="hidden" id="amenityType" value="pool"/>
+          </div>
+
+          <div class="form-group">
+            <label for="listingTitle">Listing Title</label>
+            <input type="text" id="listingTitle"
+              placeholder="e.g. Rooftop Pool with City View"/>
+            <span class="input-hint">Make it descriptive and appealing</span>
+          </div>
+
+          <div class="form-group">
+            <label for="listingDesc">Description</label>
+            <textarea id="listingDesc" rows="4"
+              placeholder="Describe your space — size, features, what's included, rules..."></textarea>
+            <span class="input-hint" id="descCount">0 / 500 characters</span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="maxGuests">Max Guests</label>
+              <input type="number" id="maxGuests" placeholder="e.g. 4" min="1" max="20"/>
+            </div>
+            <div class="form-group">
+              <label for="minHours">Minimum Hours</label>
+              <input type="number" id="minHours" placeholder="e.g. 1" min="1" max="12"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Amenities Included</label>
+            <div class="amenities-check-grid">
+              <label class="check-item">
+                <input type="checkbox" value="wifi"/> WiFi
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="parking"/> Parking
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="shower"/> Shower
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="towels"/> Towels
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="ac"/> AC
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="music"/> Music System
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="locker"/> Locker
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="snacks"/> Snacks
+              </label>
+            </div>
+          </div>
+
+          <button class="btn-primary btn-full" onclick="goToCLStep(2)">
+            Continue to Location →
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: LOCATION -->
+      <div class="cl-card" id="clCard2" style="display:none">
+        <div class="cl-card-header">
+          <h2>Location</h2>
+          <p>Where is your amenity located?</p>
+        </div>
+
+        <div class="auth-form">
+          <div class="form-group">
+            <label for="listingAddress">Full Address</label>
+            <input type="text" id="listingAddress"
+              placeholder="House/Flat no, Street, Area"/>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="listingCity">City</label>
+              <input type="text" id="listingCity" placeholder="Hyderabad"/>
+            </div>
+            <div class="form-group">
+              <label for="listingPincode">Pincode</label>
+              <input type="text" id="listingPincode" placeholder="500001" maxlength="6"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="listingState">State</label>
+            <input type="text" id="listingState" placeholder="Telangana"/>
+          </div>
+
+          <!-- GPS CAPTURE -->
+          <div class="gps-capture-box">
+            <div class="gps-icon">📍</div>
+            <div class="gps-info">
+              <strong>Capture GPS Location</strong>
+              <span id="gpsStatus">Not captured yet</span>
+            </div>
+            <button class="btn-outline" id="gpsBtn" onclick="captureGPS()">
+              Capture
+            </button>
+          </div>
+
+          <div class="location-note">
+            <span>ℹ️</span>
+            <p>Your exact address is only shared with users after they complete a booking. Other users only see your neighbourhood.</p>
+          </div>
+
+          <div style="display:flex; gap:12px;">
+            <button class="btn-outline btn-full" onclick="goToCLStep(1)">← Back</button>
+            <button class="btn-primary btn-full" onclick="goToCLStep(3)">Continue to Photos →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: PHOTOS -->
+      <div class="cl-card" id="clCard3" style="display:none">
+        <div class="cl-card-header">
+          <h2>Photos</h2>
+          <p>Add at least 3 clear photos of your amenity</p>
+        </div>
+
+        <div class="photo-upload-grid" id="photoGrid">
+          <div class="photo-slot main-photo" onclick="triggerPhotoUpload(0)">
+            <div class="photo-slot-inner" id="photoSlot0">
+              <span class="photo-plus">+</span>
+              <span class="photo-label">Main Photo</span>
+            </div>
+          </div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(1)">
+            <div class="photo-slot-inner" id="photoSlot1">
+              <span class="photo-plus">+</span>
+              <span class="photo-label">Photo 2</span>
+            </div>
+          </div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(2)">
+            <div class="photo-slot-inner" id="photoSlot2">
+              <span class="photo-plus">+</span>
+              <span class="photo-label">Photo 3</span>
+            </div>
+          </div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(3)">
+            <div class="photo-slot-inner" id="photoSlot3">
+              <span class="photo-plus">+</span>
+              <span class="photo-label">Photo 4</span>
+            </div>
+          </div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(4)">
+            <div class="photo-slot-inner" id="photoSlot4">
+              <span class="photo-plus">+</span>
+              <span class="photo-label">Photo 5</span>
+            </div>
+          </div>
+        </div>
+
+        <input type="file" id="photoInput" accept="image/*"
+          style="display:none" multiple/>
+
+        <div class="photo-tips">
+          <p>📸 <strong>Tips for great photos:</strong> Good natural lighting, show the full space, include any special features</p>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:20px;">
+          <button class="btn-outline btn-full" onclick="goToCLStep(2)">← Back</button>
+          <button class="btn-primary btn-full" onclick="goToCLStep(4)">Continue to Pricing →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: PRICING & AVAILABILITY -->
+      <div class="cl-card" id="clCard4" style="display:none">
+        <div class="cl-card-header">
+          <h2>Pricing & Availability</h2>
+          <p>Set your hourly rate and available time slots</p>
+        </div>
+
+        <div class="auth-form">
+          <div class="form-group">
+            <label for="hourlyRate">Hourly Rate (₹)</label>
+            <div class="price-input-wrapper">
+              <span class="price-prefix">₹</span>
+              <input type="number" id="hourlyRate" placeholder="499" min="50"/>
+            </div>
+            <span class="input-hint">Recommended: ₹200–₹2000 per hour</span>
+          </div>
+
+          <!-- EARNINGS PREVIEW -->
+          <div class="earnings-preview" id="earningsPreview">
+            <div class="earnings-preview-row">
+              <span>Your hourly rate</span>
+              <span id="previewRate">₹0</span>
+            </div>
+            <div class="earnings-preview-row">
+              <span>MicroLease fee (10%)</span>
+              <span id="previewFee" style="color:#ef4444;">- ₹0</span>
+            </div>
+            <div class="earnings-preview-row total">
+              <span>You earn per hour</span>
+              <span id="previewEarning">₹0</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Available Days</label>
+            <div class="days-selector">
+              <button class="day-btn active" data-day="mon">Mon</button>
+              <button class="day-btn active" data-day="tue">Tue</button>
+              <button class="day-btn active" data-day="wed">Wed</button>
+              <button class="day-btn active" data-day="thu">Thu</button>
+              <button class="day-btn active" data-day="fri">Fri</button>
+              <button class="day-btn" data-day="sat">Sat</button>
+              <button class="day-btn" data-day="sun">Sun</button>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="openTime">Opening Time</label>
+              <input type="time" id="openTime" value="08:00"/>
+            </div>
+            <div class="form-group">
+              <label for="closeTime">Closing Time</label>
+              <input type="time" id="closeTime" value="22:00"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Instant Book</label>
+            <div class="toggle-row">
+              <div>
+                <strong style="font-size:14px;">Allow Instant Booking</strong>
+                <p style="font-size:12px; color:#6b7280; margin-top:2px;">
+                  Users can book without your manual approval
+                </p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="instantBook" checked/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- ERROR -->
+          <div class="auth-error" id="listingError"></div>
+
+          <div style="display:flex; gap:12px;">
+            <button class="btn-outline btn-full" onclick="goToCLStep(3)">← Back</button>
+            <button class="btn-primary btn-full" id="publishBtn" onclick="publishListing()">
+              🚀 Publish Listing
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUCCESS STATE -->
+      <div class="cl-card" id="clSuccess" style="display:none; text-align:center;">
+        <div style="padding: 40px 20px;">
+          <div style="font-size:64px; margin-bottom:20px;">🎉</div>
+          <h2 style="font-size:24px; font-weight:800; margin-bottom:12px;">
+            Listing Published!
+          </h2>
+          <p style="color:#6b7280; font-size:15px; margin-bottom:32px;">
+            Your amenity is now live on MicroLease. Users near you can
+            discover and book it right away.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <a href="owner-dashboard.html" class="btn-primary btn-full"
+              style="text-align:center;">
+              Go to Dashboard
+            </a>
+            <button class="btn-outline btn-full" onclick="resetForm()">
+              + Create Another Listing
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: PREVIEW -->
+    <div class="listing-preview-panel">
+      <div class="preview-label">Live Preview</div>
+      <div class="listing-preview-card">
+        <div class="preview-photo" id="previewPhoto">
+          <span>📷</span>
+          <p>Your photos will appear here</p>
+        </div>
+        <div class="preview-body">
+          <div class="preview-type" id="previewType">🏊 Pool</div>
+          <div class="preview-title" id="previewTitle">Your listing title</div>
+          <div class="preview-location" id="previewLocation">📍 Your city</div>
+          <div class="preview-price" id="previewPrice">₹— / hr</div>
+          <div class="preview-badges">
+            <span class="preview-badge">✓ Verified Owner</span>
+            <span class="preview-badge">⚡ Instant Book</span>
+          </div>
+        </div>
+      </div>
+      <p class="preview-note">
+        This is how your listing will appear to users on the map and search results.
+      </p>
+    </div>
+
+  </div>
+
+ <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  let currentCLStep = 1;
+  let selectedPhotos = [];
+  let capturedLat = null;
+  let capturedLng = null;
+  let selectedAmenityType = 'pool';
+
+  // ── STEP NAVIGATION ──
+  function goToCLStep(step) {
+    document.querySelectorAll('.cl-card').forEach(c => c.style.display = 'none');
+    document.getElementById('clCard' + step).style.display = 'block';
+    currentCLStep = step;
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById('clStep' + i);
+      el.classList.toggle('active', i === step);
+      el.classList.toggle('done', i < step);
+    }
+  }
+
+  // ── AMENITY TYPE ──
+  function selectAmenityType(btn, type) {
+    document.querySelectorAll('.amenity-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedAmenityType = type;
+    document.getElementById('amenityType').value = type;
+    const icons = { pool:'🏊', gym:'🏋️', theater:'🎬', garden:'🌿', sauna:'🧖', gameroom:'🎮' };
+    const customWrapper = document.getElementById('customTypeWrapper');
+    if (type === 'custom') {
+      customWrapper.style.display = 'block';
+      document.getElementById('previewType').textContent = '✏️ Custom';
+    } else {
+      customWrapper.style.display = 'none';
+      document.getElementById('previewType').textContent =
+        (icons[type] || '🏠') + ' ' + type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  }
+
+  function updateCustomType(value) {
+    document.getElementById('amenityType').value = value || 'custom';
+    document.getElementById('previewType').textContent = '✏️ ' + (value || 'Custom Amenity');
+  }
+
+  // ── LIVE PREVIEW ──
+  document.getElementById('listingTitle').addEventListener('input', function() {
+    document.getElementById('previewTitle').textContent = this.value || 'Your listing title';
+  });
+  document.getElementById('listingCity').addEventListener('input', function() {
+    document.getElementById('previewLocation').textContent = '📍 ' + (this.value || 'Your city');
+  });
+  document.getElementById('hourlyRate').addEventListener('input', function() {
+    const rate = parseInt(this.value) || 0;
+    const fee  = Math.round(rate * 0.10);
+    const earn = rate - fee;
+    document.getElementById('previewRate').textContent    = '₹' + rate;
+    document.getElementById('previewFee').textContent     = '- ₹' + fee;
+    document.getElementById('previewEarning').textContent = '₹' + earn;
+    document.getElementById('previewPrice').textContent   = rate ? '₹' + rate + ' / hr' : '₹— / hr';
+  });
+  document.getElementById('listingDesc').addEventListener('input', function() {
+    document.getElementById('descCount').textContent = this.value.length + ' / 500 characters';
+    if (this.value.length > 500) this.value = this.value.slice(0, 500);
+  });
+
+  // ── GPS CAPTURE ──
+  function captureGPS() {
+    const btn = document.getElementById('gpsBtn');
+    const status = document.getElementById('gpsStatus');
+    btn.textContent = 'Capturing...';
+    btn.disabled = true;
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        capturedLat = pos.coords.latitude.toFixed(6);
+        capturedLng = pos.coords.longitude.toFixed(6);
+        status.textContent = `✅ Captured: ${capturedLat}, ${capturedLng}`;
+        status.style.color = '#059669';
+        btn.textContent = '✓ Captured';
+        btn.style.borderColor = '#059669';
+        btn.style.color = '#059669';
+      },
+      err => {
+        status.textContent = '❌ Could not get location. Please enter manually.';
+        status.style.color = '#dc2626';
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+      }
+    );
+  }
+
+  // ── PHOTO UPLOAD ──
+  let currentPhotoSlot = 0;
+  function triggerPhotoUpload(slot) {
+    currentPhotoSlot = slot;
+    document.getElementById('photoInput').click();
+  }
+  document.getElementById('photoInput').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const slot = document.getElementById('photoSlot' + currentPhotoSlot);
+      slot.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;"/>`;
+      selectedPhotos[currentPhotoSlot] = e.target.result; // store base64 URL
+      if (currentPhotoSlot === 0) {
+        document.getElementById('previewPhoto').innerHTML =
+          `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;"/>`;
+      }
+    };
+    reader.readAsDataURL(file);
+    this.value = '';
+  });
+
+  // ── DAYS SELECTOR ──
+  document.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', function() { this.classList.toggle('active'); });
+  });
+
+  // ── PUBLISH → SAVE TO FIRESTORE ──
+  async function publishListing() {
+    const title = document.getElementById('listingTitle').value.trim();
+    const rate  = document.getElementById('hourlyRate').value;
+    const addr  = document.getElementById('listingAddress').value.trim();
+    const city  = document.getElementById('listingCity').value.trim();
+    const desc  = document.getElementById('listingDesc').value.trim();
+    const guests = document.getElementById('maxGuests') ? document.getElementById('maxGuests').value : 1;
+    const error = document.getElementById('listingError');
+
+    if (!title) { error.textContent = 'Please add a listing title.'; return; }
+    if (selectedAmenityType === 'custom' && !document.getElementById('customTypeName').value.trim()) {
+      error.textContent = 'Please describe your custom amenity type.'; return;
+    }
+    if (!addr)  { error.textContent = 'Please add your address.'; return; }
+    if (!rate)  { error.textContent = 'Please set an hourly rate.'; return; }
+
+    // Get selected days
+    const availability = [];
+    document.querySelectorAll('.day-btn.active').forEach(b => availability.push(b.textContent.trim()));
+
+    // Use captured GPS or fallback to 0
+    const lat = capturedLat || 17.3850; // Hyderabad fallback
+    const lng = capturedLng || 78.4867;
+
+    error.textContent = '';
+    const btn = document.getElementById('publishBtn');
+    btn.textContent = 'Publishing...';
+    btn.disabled = true;
+
+    try {
+      await createListing({
+        title,
+        type:         selectedAmenityType,
+        area:         addr,
+        city:         city || 'Hyderabad',
+        price:        rate,
+        description:  desc,
+        guests:       guests,
+        availability,
+        lat,
+        lng,
+        photos:       selectedPhotos.filter(Boolean) // base64 URLs
+      });
+
+      document.querySelectorAll('.cl-card').forEach(c => c.style.display = 'none');
+      document.getElementById('clSuccess').style.display = 'block';
+    } catch (err) {
+      error.textContent = 'Failed to publish: ' + err.message;
+      btn.textContent = '🚀 Publish Listing';
+      btn.disabled = false;
+    }
+  }
+
+  function resetForm() {
+    document.querySelectorAll('.cl-card').forEach(c => c.style.display = 'none');
+    document.getElementById('clCard1').style.display = 'block';
+    document.getElementById('publishBtn').textContent = '🚀 Publish Listing';
+    document.getElementById('publishBtn').disabled = false;
+    currentCLStep = 1;
+  }
+</script>
+
+  
+</body>
+</html>

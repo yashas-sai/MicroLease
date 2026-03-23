@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="auth-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <span style="color:#6b7280; font-size:14px;">Already have an account?</span>
+      <a href="login.html" class="btn-primary">Login</a>
+    </div>
+  </nav>
+
+  <!-- SIGNUP FORM -->
+  <div class="auth-container">
+
+    <!-- SIDE PANEL -->
+    <div class="auth-side">
+      <div class="auth-side-content">
+        <div class="auth-side-badge">🏠 Join MicroLease</div>
+        <h2>List Your Space or Find One Near You</h2>
+        <p>Whether you're a homeowner with idle amenities or someone looking for hourly access — MicroLease connects you safely.</p>
+        <div class="auth-side-features">
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Free to sign up — no hidden fees</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>List your amenity in minutes</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Get paid securely after every booking</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Full fraud protection on every transaction</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD -->
+    <div class="auth-card">
+
+      <div class="auth-header">
+        <div class="auth-logo">🚀</div>
+        <h1>Create your account</h1>
+        <p>Join MicroLease for free today</p>
+      </div>
+
+      <!-- ROLE SELECTOR -->
+      <div class="role-selector">
+        <button class="role-btn active" id="roleUser" onclick="selectRole('user')">
+          <span class="role-icon">🔍</span>
+          <span class="role-label">I want to rent</span>
+        </button>
+        <button class="role-btn" id="roleOwner" onclick="selectRole('owner')">
+          <span class="role-icon">🏠</span>
+          <span class="role-label">I want to list</span>
+        </button>
+      </div>
+
+      <!-- GOOGLE SIGNUP -->
+      <button class="btn-google" id="googleSignupBtn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20"/>
+        Continue with Google
+      </button>
+
+      <div class="auth-divider"><span>or sign up with email</span></div>
+
+      <!-- FORM -->
+      <div class="auth-form">
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" placeholder="Arjun" />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" placeholder="Sharma" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <div class="phone-input">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="phone" placeholder="9876543210" maxlength="10"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="Min. 8 characters" />
+            <button class="toggle-password" id="togglePassword">👁</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="confirmPassword" placeholder="Repeat your password" />
+            <button class="toggle-password" id="toggleConfirm">👁</button>
+          </div>
+        </div>
+
+        <!-- PASSWORD STRENGTH -->
+        <div class="password-strength" id="passwordStrength">
+          <div class="strength-bar">
+            <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <span class="strength-label" id="strengthLabel">Enter a password</span>
+        </div>
+
+        <label class="checkbox-label" style="font-size:13px;">
+          <input type="checkbox" id="agreeTerms" />
+          I agree to the <a href="#" style="color:#1a56db;">Terms of Service</a> and <a href="#" style="color:#1a56db;">Privacy Policy</a>
+        </label>
+
+        <!-- ERROR -->
+        <div class="auth-error" id="authError"></div>
+
+        <button class="btn-primary btn-full" id="signupBtn">
+          Create My Account
+        </button>
+
+      </div>
+
+      <p class="auth-footer-text">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+
+    </div>
+  </div>
+
+    <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  // ── Role selector ────────────────────────────────────────
+  let selectedRole = 'user';
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById('roleUser').classList.toggle('active', role === 'user');
+    document.getElementById('roleOwner').classList.toggle('active', role === 'owner');
+  }
+
+  // ── Password strength ────────────────────────────────────
+  document.getElementById('password').addEventListener('input', function() {
+    const val = this.value;
+    const fill = document.getElementById('strengthFill');
+    const label = document.getElementById('strengthLabel');
+    let strength = 0;
+    if (val.length >= 8) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const levels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+    const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+    const widths = ['0%', '25%', '50%', '75%', '100%'];
+    fill.style.width = widths[strength];
+    fill.style.background = colors[strength];
+    label.textContent = strength === 0 ? 'Enter a password' : levels[strength];
+    label.style.color = colors[strength];
+  });
+
+  // ── Toggle password visibility ───────────────────────────
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+  document.getElementById('toggleConfirm').addEventListener('click', function() {
+    const input = document.getElementById('confirmPassword');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+
+  // ── Show error ───────────────────────────────────────────
+  function showError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // ── Email Sign Up ────────────────────────────────────────
+  document.getElementById('signupBtn').addEventListener('click', async function() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const phone     = document.getElementById('phone').value.trim();
+    const password  = document.getElementById('password').value;
+    const confirm   = document.getElementById('confirmPassword').value;
+    const agreed    = document.getElementById('agreeTerms').checked;
+
+    if (!firstName || !lastName) return showError('Please enter your full name.');
+    if (!email)                  return showError('Please enter your email.');
+    if (!phone || phone.length !== 10) return showError('Please enter a valid 10-digit phone number.');
+    if (password.length < 8)     return showError('Password must be at least 8 characters.');
+    if (password !== confirm)    return showError('Passwords do not match.');
+    if (!agreed)                 return showError('Please agree to the Terms of Service.');
+
+    const btn = document.getElementById('signupBtn');
+    btn.textContent = 'Creating account...';
+    btn.disabled = true;
+
+    try {
+      const name = firstName + ' ' + lastName;
+      const user = await signUpWithEmail(name, email, password, selectedRole);
+      await db.collection('users').doc(user.uid).update({ phone: '+91' + phone });
+      if (selectedRole === 'owner') {
+        window.location.href = 'kyc.html';
+      } else {
+        window.location.href = 'map.html';
+      }
+    } catch (err) {
+      btn.textContent = 'Create My Account';
+      btn.disabled = false;
+      if (err.code === 'auth/email-already-in-use') {
+        showError('This email is already registered. Please login.');
+      } else if (err.code === 'auth/invalid-email') {
+        showError('Please enter a valid email address.');
+      } else {
+        showError(err.message);
+      }
+    }
+  });
+
+  // ── Google Sign Up ───────────────────────────────────────
+  document.getElementById('googleSignupBtn').addEventListener('click', async function() {
+    try {
+      const user = await signInWithGoogle();
+      if (selectedRole === 'owner') {
+        await db.collection('users').doc(user.uid).update({ role: 'owner' });
+        window.location.href = 'kyc.html';
+      } else {
+        window.location.href = 'map.html';
+      }
+    } catch (err) {
+      showError('Google sign-in failed. Please try again.');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <div class="admin-badge">🛡️ Admin Panel</div>
+      <div class="nav-avatar" id="navAvatar">A</div>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-profile">
+        <div class="sidebar-avatar" style="background:#dc2626;">A</div>
+        <div class="sidebar-info">
+          <div class="sidebar-name">Admin</div>
+          <div class="sidebar-role" style="color:#f87171;">
+            Super Admin
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active"
+          onclick="showAdminSection('overview', this)">
+          <span>📊</span> Overview
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('users', this)">
+          <span>👥</span> All Users
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('listings', this)">
+          <span>🏠</span> All Listings
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('bookings', this)">
+          <span>📅</span> All Bookings
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('reports', this)">
+          <span>🚩</span> Fraud Reports
+          <span class="sidebar-badge" id="reportsBadge">2</span>
+        </a>
+        <a class="sidebar-link"
+          onclick="showAdminSection('kyc', this)">
+          <span>🪪</span> KYC Reviews
+          <span class="sidebar-badge" id="kycBadge">3</span>
+        </a>
+      </nav>
+
+      <button class="sidebar-logout" id="logoutBtn">
+        🚪 Logout
+      </button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="dashboard-main">
+
+      <!-- ── OVERVIEW ── -->
+      <section id="overview" class="dash-section active">
+        <div class="dash-header">
+          <div>
+            <h1>Platform Overview</h1>
+            <p>Real-time stats across MicroLease</p>
+          </div>
+          <div class="admin-live-badge">
+            <span class="live-dot"></span> Live Data
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#dbeafe;">👥</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminTotalUsers">0</div>
+              <div class="stat-card-label">Total Users</div>
+            </div>
+            <div class="stat-card-trend up">↑ 14%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#dcfce7;">🏠</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminTotalListings">0</div>
+              <div class="stat-card-label">Active Listings</div>
+            </div>
+            <div class="stat-card-trend up">↑ 8%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fef9c3;">📅</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminTotalBookings">0</div>
+              <div class="stat-card-label">Total Bookings</div>
+            </div>
+            <div class="stat-card-trend up">↑ 22%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fce7f3;">💰</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminRevenue">₹0</div>
+              <div class="stat-card-label">Platform Revenue</div>
+            </div>
+            <div class="stat-card-trend up">↑ 31%</div>
+          </div>
+        </div>
+
+        <!-- SECOND ROW STATS -->
+        <div class="stats-grid"
+          style="grid-template-columns:repeat(3,1fr); margin-top:0;">
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fee2e2;">🚩</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminReports">2</div>
+              <div class="stat-card-label">Open Fraud Reports</div>
+            </div>
+            <div class="stat-card-trend down">Needs Review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#fef9c3;">🪪</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminKYC">3</div>
+              <div class="stat-card-label">Pending KYC Reviews</div>
+            </div>
+            <div class="stat-card-trend down">Needs Review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#dcfce7;">🔒</div>
+            <div class="stat-card-info">
+              <div class="stat-card-value" id="adminEscrow">₹0</div>
+              <div class="stat-card-label">Funds in Escrow</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h2>Recent Activity</h2>
+            <span class="dash-card-link">Live feed</span>
+          </div>
+          <div class="activity-feed" id="activityFeed">
+            <div class="activity-item">
+              <div class="activity-icon" style="background:#f3f4f6;">⏳</div>
+              <div class="activity-info"><strong>Loading activity…</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── USERS ── -->
+      <section id="users" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>All Users</h1>
+            <p>Every real account on MicroLease</p>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="userSearch"
+              placeholder="Search users..."
+              oninput="searchUsers(this.value)"/>
+          </div>
+        </div>
+
+        <!-- USER FILTER -->
+        <div class="filter-tabs" style="margin-bottom:16px;">
+          <button class="filter-tab active"
+            onclick="filterUsers('all', this)">All</button>
+          <button class="filter-tab"
+            onclick="filterUsers('owner', this)">Owners</button>
+          <button class="filter-tab"
+            onclick="filterUsers('user', this)">Renters</button>
+          <button class="filter-tab"
+            onclick="filterUsers('verified', this)">Verified</button>
+          <button class="filter-tab"
+            onclick="filterUsers('flagged', this)">
+            🚩 Flagged
+          </button>
+        </div>
+
+        <div class="dash-card" style="padding:0;">
+          <table class="bookings-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Bookings</th>
+                <th>KYC Status</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr class="empty-row">
+                <td colspan="7">
+                  Loading users... (connects to Firestore in next phase)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── LISTINGS ── -->
+      <section id="listings" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>All Listings</h1>
+            <p>Every amenity listed on MicroLease</p>
+          </div>
+          <div class="admin-search">
+            <input type="text" placeholder="Search listings..."/>
+          </div>
+        </div>
+
+        <div class="filter-tabs" style="margin-bottom:16px;">
+          <button class="filter-tab active">All</button>
+          <button class="filter-tab">✅ Active</button>
+          <button class="filter-tab">⏸️ Paused</button>
+          <button class="filter-tab">🚩 Flagged</button>
+        </div>
+
+        <div class="dash-card" style="padding:0;">
+          <table class="bookings-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>Listing</th>
+                <th>Owner</th>
+                <th>Type</th>
+                <th>Price</th>
+                <th>Bookings</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="listingsTableBody">
+              <tr class="empty-row">
+                <td colspan="7">
+                  Loading listings... (connects to Firestore in next phase)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── BOOKINGS ── -->
+      <section id="bookings" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>All Bookings</h1>
+            <p>Every transaction on the platform</p>
+          </div>
+        </div>
+
+        <div class="filter-tabs" style="margin-bottom:16px;">
+          <button class="filter-tab active"
+            onclick="filterAdminBookings('all', this)">All</button>
+          <button class="filter-tab"
+            onclick="filterAdminBookings('payment_held', this)">
+            🔒 Held
+          </button>
+          <button class="filter-tab"
+            onclick="filterAdminBookings('funds_released', this)">
+            ✅ Released
+          </button>
+          <button class="filter-tab"
+            onclick="filterAdminBookings('refunded', this)">
+            🔄 Refunded
+          </button>
+        </div>
+
+        <div class="dash-card" style="padding:0;">
+          <table class="bookings-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>User</th>
+                <th>Listing</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Escrow Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody">
+              <tr class="empty-row">
+                <td colspan="7">
+                  Loading bookings…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── FRAUD REPORTS ── -->
+      <section id="reports" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>Fraud Reports</h1>
+            <p>User-reported fake or misrepresented listings</p>
+          </div>
+        </div>
+        <div id="reportsContainer">
+          <div class="dash-empty"><p>Loading reports...</p></div>
+        </div>
+      </section>
+
+      <!-- ── KYC REVIEWS ── -->
+      <section id="kyc" class="dash-section">
+        <div class="dash-header">
+          <div>
+            <h1>KYC Reviews</h1>
+            <p>Pending identity verifications requiring manual review</p>
+          </div>
+        </div>
+        <div class="kyc-review-list" id="kycReviewList">
+          <div class="dash-empty"><p>Loading KYC submissions...</p></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+ <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  // 🔒 ADMIN GUARD — must be first. Blocks non-admins before anything loads.
+  requireAdmin();
+
+  let allUsers        = [];
+  let allAdminBookings = [];
+  let allReports      = [];
+  let allKYC          = [];
+  let allListings     = [];
+  let currentUserFilter = 'all';
+
+  // ── INIT ──
+  window.addEventListener('load', async () => {
+    // Wait for auth before loading data
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      await loadAdminDashboard();
+    });
+  });
+
+  async function loadAdminDashboard() {
+    try {
+      [allUsers, allAdminBookings, allReports, allKYC, allListings] = await Promise.all([
+        adminGetAllUsers(),
+        adminGetAllBookings(),
+        adminGetAllReports(),
+        adminGetAllKYC(),
+        adminGetAllListings()
+      ]);
+      updateAdminStats();
+      renderUsersTable(allUsers);
+      renderAdminBookings();
+      renderAdminListings();
+      renderReports();
+      renderKYC();
+      renderActivityFeed();
+    } catch (err) {
+      showToast('❌ Failed to load admin data: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  // ── STATS ──
+  function updateAdminStats() {
+    const revenue = allAdminBookings
+      .filter(b => b.status === 'funds_released')
+      .reduce((sum, b) => sum + b.total, 0);
+    const escrow = allAdminBookings
+      .filter(b => b.status === 'payment_held')
+      .reduce((sum, b) => sum + b.total, 0);
+    const pendingKYC = allKYC.filter(k => k.status === 'pending' || k.status === 'manual_review').length;
+
+    if (document.getElementById('adminTotalUsers'))    document.getElementById('adminTotalUsers').textContent    = allUsers.length;
+    if (document.getElementById('adminTotalListings')) document.getElementById('adminTotalListings').textContent = allListings.length;
+    if (document.getElementById('adminTotalBookings')) document.getElementById('adminTotalBookings').textContent = allAdminBookings.length;
+    if (document.getElementById('adminRevenue'))       document.getElementById('adminRevenue').textContent       = '₹' + revenue;
+    if (document.getElementById('adminEscrow'))        document.getElementById('adminEscrow').textContent        = '₹' + escrow;
+    if (document.getElementById('adminKYC'))           document.getElementById('adminKYC').textContent           = pendingKYC;
+    if (document.getElementById('adminReports'))       document.getElementById('adminReports').textContent       = allReports.filter(r => r.status === 'pending').length;
+    if (document.getElementById('kycBadge'))           document.getElementById('kycBadge').textContent           = pendingKYC;
+  }
+
+  // ── USERS TABLE ──
+  function renderUsersTable(users) {
+    const filtered = currentUserFilter === 'all'
+      ? users
+      : users.filter(u => u.role === currentUserFilter || u.banned === (currentUserFilter === 'banned'));
+
+    const tbody = document.getElementById('usersTableBody');
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No users found.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = filtered.map(u => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="user-table-avatar">${(u.name || 'U').charAt(0)}</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;">${u.name || '—'}</div>
+              <div style="font-size:11px;color:#9ca3af;">${u.email}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="role-pill ${u.role}">${u.role === 'owner' ? '🏠 Owner' : u.role === 'admin' ? '🛡️ Admin' : '🔍 Renter'}</span></td>
+        <td style="font-size:13px;color:#6b7280;">
+          ${u.createdAt ? new Date(u.createdAt.toDate ? u.createdAt.toDate() : u.createdAt).toLocaleDateString('en-IN', {month:'short',year:'numeric'}) : '—'}
+        </td>
+        <td style="font-size:13px;font-weight:700;">${allAdminBookings.filter(b => b.userId === u.uid).length}</td>
+        <td>${kycBadge(u.kycStatus || (u.role === 'user' ? 'not required' : 'pending'))}</td>
+        <td>${userStatusBadge(u.banned ? 'banned' : 'active')}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            ${!u.banned ? `<button class="admin-action-btn dismiss" style="padding:5px 10px;font-size:11px;"
+              onclick="banUserAction('${u.uid}', '${u.email}')">Ban</button>` : '<span style="font-size:12px;color:#9ca3af;">Banned</span>'}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── ADMIN BOOKINGS ──
+  function renderAdminBookings(filter) {
+    const container = document.getElementById('bookingsTableBody');
+    if (!container) return;
+    const list = filter && filter !== 'all'
+      ? allAdminBookings.filter(b => b.status === filter)
+      : allAdminBookings;
+    if (!list.length) {
+      container.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:#6b7280;">No bookings found.</td></tr>`;
+      return;
+    }
+    container.innerHTML = list.map(b => `
+      <tr>
+        <td style="font-family:monospace;font-size:12px;color:#1a56db;font-weight:700;">
+          #${(b.id || '').slice(-6).toUpperCase()}
+        </td>
+        <td>${b.userName || 'Guest'}</td>
+        <td>${b.listingTitle || '—'}</td>
+        <td>${formatDate(b.date)}<br><small style="color:#9ca3af;">${b.slot || ''}</small></td>
+        <td style="font-weight:700;">₹${b.total || 0}</td>
+        <td>${statusBadge(b.status)}</td>
+        <td style="font-size:12px;color:#6b7280;">${b.duration || 1} hr${(b.duration || 1) > 1 ? 's' : ''}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── ADMIN LISTINGS ──
+  function renderAdminListings() {
+    const container = document.getElementById('listingsTableBody');
+    if (!container) return;
+    if (!allListings.length) {
+      container.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:#6b7280;">No listings found.</td></tr>`;
+      return;
+    }
+    const EMOJI = { pool:'🏊', gym:'🏋️', theater:'🎬', garden:'🌿', sauna:'🧖', gameroom:'🎮' };
+    container.innerHTML = allListings.map(l => {
+      const emoji = EMOJI[l.type] || '🏠';
+      const created = l.createdAt
+        ? new Date(l.createdAt.toDate ? l.createdAt.toDate() : l.createdAt)
+            .toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+        : '—';
+      return `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">${emoji}</span>
+              <div>
+                <div style="font-weight:700;font-size:13px;">${l.title || '—'}</div>
+                <div style="font-size:11px;color:#9ca3af;">${l.area || ''}, ${l.city || ''}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:13px;">${l.ownerName || '—'}</td>
+          <td style="font-size:13px;">${emoji} ${(l.type || '').charAt(0).toUpperCase() + (l.type || '').slice(1)}</td>
+          <td style="font-weight:700;">₹${l.price || 0}/hr</td>
+          <td style="font-size:13px;color:#6b7280;">${created}</td>
+          <td>${l.verified ? '<span class="status-badge badge-released">✓ Verified</span>' : '<span class="status-badge badge-held">Unverified</span>'}</td>
+          <td><a href="listing-detail.html?id=${l.id}" class="btn-outline" style="padding:4px 12px;font-size:12px;">View →</a></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── FRAUD REPORTS — dynamic from Firestore ──
+  function renderReports() {
+    const container = document.getElementById('reportsContainer');
+    if (!container) return;
+    if (!allReports.length) {
+      container.innerHTML = `<div class="dash-empty"><div style="font-size:36px;">✅</div><p>No fraud reports yet.</p></div>`;
+      return;
+    }
+    container.innerHTML = allReports.map(r => {
+      const isPending = r.status === 'pending' || r.status === 'investigating';
+      const priorityLabel = r.status === 'investigating' ? '🔵 Investigating' : '🔴 Pending';
+      const cardClass = isPending ? 'report-card urgent' : 'report-card';
+      const timeAgo = r.createdAt ? timeAgoStr(r.createdAt) : '—';
+      return `
+      <div class="${cardClass}" id="report-${r.id}">
+        <div class="report-header">
+          <div class="report-priority">${priorityLabel}</div>
+          <div class="report-id">Report #${r.id.slice(-6).toUpperCase()}</div>
+          <div class="report-time">Filed ${timeAgo}</div>
+        </div>
+        <div class="report-body">
+          <div class="report-detail">
+            <span class="rd-label">Reported Listing</span>
+            <span class="rd-value">${r.listingTitle || r.listingId || '—'}</span>
+          </div>
+          <div class="report-detail">
+            <span class="rd-label">Reported By</span>
+            <span class="rd-value">${r.reporterName || r.reportedBy || '—'}</span>
+          </div>
+          <div class="report-detail">
+            <span class="rd-label">Reason</span>
+            <span class="rd-value">${r.reason || '—'}</span>
+          </div>
+          <div class="report-detail">
+            <span class="rd-label">Booking ID</span>
+            <span class="rd-value" style="font-family:monospace;">${r.bookingId || '—'}</span>
+          </div>
+        </div>
+        ${isPending ? `
+        <div class="report-actions">
+          <button class="admin-action-btn refund" onclick="processRefundAction('${r.id}', '${r.bookingId || ''}', '${r.ownerId || ''}')">
+            🔄 Process Refund & Ban Owner
+          </button>
+          <button class="admin-action-btn investigate" onclick="markInvestigatingAction('${r.id}')">
+            🔍 Mark as Investigating
+          </button>
+          <button class="admin-action-btn dismiss" onclick="dismissReportAction('${r.id}')">
+            ✕ Dismiss Report
+          </button>
+        </div>` : `<div style="padding:10px 0 4px;font-size:13px;color:#6b7280;">Status: ${statusBadge(r.status)}</div>`}
+      </div>`;
+    }).join('');
+  }
+
+  // ── KYC — dynamic from Firestore ──
+  function renderKYC() {
+    const container = document.getElementById('kycReviewList');
+    if (!container) return;
+
+    // Join KYC submissions with user data
+    const pendingKYC = allKYC.filter(k => k.status === 'pending' || k.status === 'manual_review');
+
+    if (!pendingKYC.length) {
+      container.innerHTML = `<div class="dash-empty"><div style="font-size:36px;">✅</div><p>No pending KYC submissions.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = pendingKYC.map(k => {
+      const user = allUsers.find(u => u.uid === k.userId) || {};
+      const initials = (user.name || 'U').charAt(0).toUpperCase();
+      const timeAgo = k.submittedAt ? timeAgoStr(k.submittedAt) : '—';
+      const docType = k.docType || 'ID Document';
+      const hasIdPhoto   = k.idPhotoUrl  || k.docUrl;
+      const hasSelfie    = k.selfieUrl;
+
+      return `
+      <div class="kyc-review-card" id="kyc-${k.userId}">
+        <div class="kyc-review-header">
+          <div class="kyc-review-avatar">${initials}</div>
+          <div class="kyc-review-info">
+            <div class="kyc-review-name">${user.name || 'Unknown User'}</div>
+            <div class="kyc-review-meta">${user.email || ''} • Submitted ${timeAgo}</div>
+          </div>
+          <span class="status-badge badge-held">⏳ Pending</span>
+        </div>
+        <div class="kyc-docs-row">
+          <div class="kyc-doc-preview">
+            <div class="kdp-label">ID Document</div>
+            <div class="kdp-img">
+              ${hasIdPhoto
+                ? `<img src="${hasIdPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" />`
+                : `🪪<br/><small>${docType}</small>`}
+            </div>
+          </div>
+          <div class="kyc-match-arrow">↔️</div>
+          <div class="kyc-doc-preview">
+            <div class="kdp-label">Live Selfie</div>
+            <div class="kdp-img">
+              ${hasSelfie
+                ? `<img src="${hasSelfie}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" />`
+                : `🤳<br/><small>Captured live</small>`}
+            </div>
+          </div>
+          <div class="kyc-match-result">
+            <div class="kmr-label" style="font-size:12px;color:#6b7280;">Submitted by ${user.name || 'user'}</div>
+            ${k.confidence > 0
+              ? `<div class="kmr-score" style="margin-top:6px;font-size:13px;font-weight:700;color:#1a56db;">${k.confidence}% match</div>`
+              : ''}
+            <div class="kmr-status good" style="margin-top:6px;">📋 Manual Review Required</div>
+          </div>
+        </div>
+        <div class="kyc-review-actions">
+          <button class="admin-action-btn approve" onclick="approveKYCAction('${k.userId}', '${user.name || ''}')">
+            ✅ Approve & Verify
+          </button>
+          <button class="admin-action-btn reject" onclick="rejectKYCAction('${k.userId}', '${user.name || ''}')">
+            ❌ Reject
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── RECENT ACTIVITY FEED — built from already-fetched data, no new Firestore calls ──
+  function renderActivityFeed() {
+    const container = document.getElementById('activityFeed');
+    if (!container) return;
+
+    const events = [];
+
+    // Users — new registrations
+    allUsers.forEach(u => {
+      if (!u.createdAt) return;
+      events.push({
+        icon:        '👤',
+        iconClass:   'new-user',
+        title:       'New user registered',
+        description: (u.name || 'A user') + ' signed up as a ' + (u.role === 'owner' ? 'owner' : 'renter'),
+        ts:          u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt)
+      });
+    });
+
+    // Bookings — new (not released)
+    allAdminBookings.filter(b => b.status !== 'funds_released').forEach(b => {
+      if (!b.createdAt) return;
+      events.push({
+        icon:        '📅',
+        iconClass:   'new-booking',
+        title:       'New booking made',
+        description: (b.listingTitle || 'A listing') + ' — ₹' + (b.total || 0) + ' held in escrow',
+        ts:          b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+      });
+    });
+
+    // Bookings — payment released
+    allAdminBookings.filter(b => b.status === 'funds_released').forEach(b => {
+      if (!b.createdAt) return;
+      events.push({
+        icon:        '💰',
+        iconClass:   'payment-released',
+        title:       'Payment released',
+        description: '₹' + (b.total || 0) + ' released to owner after arrival confirmation',
+        ts:          b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+      });
+    });
+
+    // Reports — fraud filed
+    allReports.forEach(r => {
+      if (!r.createdAt) return;
+      events.push({
+        icon:        '🚩',
+        iconClass:   'fraud-report',
+        title:       'Fraud report filed',
+        description: (r.listingTitle || r.listingId || 'A listing') + ' reported as fake',
+        ts:          r.createdAt.toDate ? r.createdAt.toDate() : new Date(r.createdAt)
+      });
+    });
+
+    // KYC — submitted for manual review
+    allKYC.filter(k => k.status === 'manual_review' || k.status === 'pending').forEach(k => {
+      const ts = k.submittedAt || k.createdAt;
+      if (!ts) return;
+      const kUser = allUsers.find(u => u.uid === k.userId);
+      events.push({
+        icon:        '🪪',
+        iconClass:   'kyc-submitted',
+        title:       'KYC submitted',
+        description: (kUser ? kUser.name : k.userId || 'Someone') + ' submitted verification documents',
+        ts:          ts.toDate ? ts.toDate() : new Date(ts)
+      });
+    });
+
+    // Sort descending, take top 10
+    events.sort((a, b) => b.ts - a.ts);
+    const top = events.slice(0, 10);
+
+    if (!top.length) {
+      container.innerHTML = `<div class="activity-item"><div class="activity-info"><span style="color:#9ca3af;">No recent activity yet.</span></div></div>`;
+      return;
+    }
+
+    container.innerHTML = top.map(ev => `
+      <div class="activity-item">
+        <div class="activity-icon ${ev.iconClass}">${ev.icon}</div>
+        <div class="activity-info">
+          <strong>${ev.title}</strong>
+          <span>${ev.description}</span>
+        </div>
+        <div class="activity-time">${timeAgoStr(ev.ts)}</div>
+      </div>`).join('');
+  }
+
+  // ── SECTION NAV ──
+  function showAdminSection(id, link) {
+    document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (link) link.classList.add('active');
+  }
+
+  // ── FILTER USERS ──
+  function filterUsers(type, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    currentUserFilter = type;
+    renderUsersTable(allUsers);
+  }
+
+  function searchUsers(query) {
+    const q = query.toLowerCase();
+    const filtered = allUsers.filter(u =>
+      (u.name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q)
+    );
+    renderUsersTable(filtered);
+  }
+
+  // ── BAN USER ──
+  async function banUserAction(uid, email) {
+    if (!confirm(`Ban user ${email}?\n\nThis will prevent them from using MicroLease.`)) return;
+    try {
+      await adminBanUser(uid);
+      const u = allUsers.find(u => u.uid === uid);
+      if (u) u.banned = true;
+      renderUsersTable(allUsers);
+      showToast('🚫 User ' + email + ' has been banned.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  // ── APPROVE KYC — updates Firestore user doc ──
+  async function approveKYCAction(userId, userName) {
+    if (!confirm(`Approve KYC for ${userName || userId}?\n\nThis will mark them as verified.`)) return;
+    try {
+      await db.collection('users').doc(userId).update({ kycStatus: 'verified' });
+      await db.collection('kyc_submissions').doc(userId).update({ status: 'verified', reviewedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      // Update local state
+      const k = allKYC.find(k => k.userId === userId);
+      if (k) k.status = 'verified';
+      const u = allUsers.find(u => u.uid === userId);
+      if (u) u.kycStatus = 'verified';
+      renderKYC();
+      updateAdminStats();
+      showToast('✅ KYC approved for ' + (userName || userId));
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  // ── REJECT KYC — updates Firestore user doc ──
+  async function rejectKYCAction(userId, userName) {
+    const reason = prompt(`Reason for rejecting ${userName || userId}'s KYC (optional):`);
+    if (reason === null) return; // cancelled
+    try {
+      await db.collection('users').doc(userId).update({ kycStatus: 'rejected' });
+      await db.collection('kyc_submissions').doc(userId).update({
+        status: 'rejected',
+        rejectionReason: reason || 'Did not meet requirements',
+        reviewedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      const k = allKYC.find(k => k.userId === userId);
+      if (k) k.status = 'rejected';
+      const u = allUsers.find(u => u.uid === userId);
+      if (u) u.kycStatus = 'rejected';
+      renderKYC();
+      updateAdminStats();
+      showToast('❌ KYC rejected for ' + (userName || userId));
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  // ── PROCESS REFUND & BAN OWNER ──
+  async function processRefundAction(reportId, bookingId, ownerId) {
+    if (!confirm('Process refund and ban owner?\n\n• Booking will be marked as refunded\n• Owner account will be banned\n\nThis cannot be undone.')) return;
+    try {
+      const ops = [
+        db.collection('reports').doc(reportId).update({ status: 'resolved', resolution: 'refund_issued', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      ];
+      if (bookingId) ops.push(db.collection('bookings').doc(bookingId).update({ status: 'refunded' }));
+      if (ownerId)   ops.push(db.collection('users').doc(ownerId).update({ banned: true }));
+      await Promise.all(ops);
+
+      const r = allReports.find(r => r.id === reportId);
+      if (r) r.status = 'resolved';
+      renderReports();
+      updateAdminStats();
+      showToast('✅ Refund processed. Owner has been banned.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  // ── MARK AS INVESTIGATING ──
+  async function markInvestigatingAction(reportId) {
+    try {
+      await db.collection('reports').doc(reportId).update({ status: 'investigating' });
+      const r = allReports.find(r => r.id === reportId);
+      if (r) r.status = 'investigating';
+      renderReports();
+      showToast('🔍 Report marked as under investigation.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  // ── DISMISS REPORT ──
+  async function dismissReportAction(reportId) {
+    if (!confirm('Dismiss this report? This will mark it as resolved with no action.')) return;
+    try {
+      await db.collection('reports').doc(reportId).update({ status: 'dismissed', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      const r = allReports.find(r => r.id === reportId);
+      if (r) r.status = 'dismissed';
+      renderReports();
+      updateAdminStats();
+      showToast('✕ Report dismissed.');
+    } catch (err) {
+      showToast('❌ Error: ' + err.message);
+    }
+  }
+
+  function filterAdminBookings(status, btn) {
+    document.querySelectorAll('#bookings .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderAdminBookings(status);
+  }
+
+  // ── BADGES ──
+  function kycBadge(status) {
+    const map = {
+      verified:       '<span class="status-badge badge-released">✓ Verified</span>',
+      pending:        '<span class="status-badge badge-held">⏳ Pending</span>',
+      manual_review:  '<span class="status-badge badge-held">👁 Review</span>',
+      rejected:       '<span class="status-badge badge-refunded">✕ Rejected</span>',
+      'not required': '<span style="font-size:12px;color:#9ca3af;">N/A</span>',
+    };
+    return map[status] || status;
+  }
+
+  function userStatusBadge(status) {
+    const map = {
+      active:  '<span class="status-badge badge-released">Active</span>',
+      flagged: '<span class="status-badge badge-held">🚩 Flagged</span>',
+      banned:  '<span class="status-badge badge-refunded">Banned</span>',
+    };
+    return map[status] || status;
+  }
+
+  function statusBadge(status) {
+    const map = {
+      payment_held:   { label: '🔒 Payment Held',   cls: 'badge-held'     },
+      funds_released: { label: '✅ Completed',       cls: 'badge-released' },
+      refunded:       { label: '🔄 Refunded',        cls: 'badge-refunded' },
+      pending:        { label: '⏳ Pending',          cls: 'badge-held'     },
+      resolved:       { label: '✅ Resolved',         cls: 'badge-released' },
+      investigating:  { label: '🔍 Investigating',   cls: 'badge-held'     },
+      dismissed:      { label: '✕ Dismissed',        cls: ''               },
+    };
+    const s = map[status] || { label: status, cls: '' };
+    return `<span class="status-badge ${s.cls}">${s.label}</span>`;
+  }
+
+  function formatDate(val) {
+    if (!val) return '—';
+    const d = val.toDate ? val.toDate() : new Date(val);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function timeAgoStr(val) {
+    if (!val) return '—';
+    const d = val.toDate ? val.toDate() : new Date(val);
+    const diff = Date.now() - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60)  return mins + ' min ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)   return hrs + ' hr ago';
+    return Math.floor(hrs / 24) + ' days ago';
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+  }
+</script>
+
+  
+</body>
+</html>

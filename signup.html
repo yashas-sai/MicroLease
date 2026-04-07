@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── GOOGLE PROFILE MODAL ── */
+    #googleProfileOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    #googleProfileOverlay.visible {
+      display: flex;
+    }
+    .gpm-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 44px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .gpm-logo { font-size: 40px; text-align: center; margin-bottom: 10px; }
+    .gpm-title { font-size: 22px; font-weight: 800; text-align: center; color: #111827; margin-bottom: 6px; }
+    .gpm-sub   { font-size: 13px; color: #6b7280; text-align: center; margin-bottom: 24px; }
+    .gpm-form  { display: flex; flex-direction: column; gap: 16px; }
+    .gpm-role  { display: flex; gap: 10px; }
+    .gpm-role-btn {
+      flex: 1; padding: 12px 8px; border: 2px solid #e5e7eb; border-radius: 12px;
+      background: white; font-family: 'Inter', sans-serif; font-size: 13px;
+      font-weight: 600; color: #374151; cursor: pointer; transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .gpm-role-btn:hover { border-color: #1a56db; background: #f0f4ff; }
+    .gpm-role-btn.active { border-color: #1a56db; background: #f0f4ff; color: #1a56db; }
+    .gpm-role-btn span:first-child { font-size: 22px; }
+    .gpm-error   { color: #dc2626; font-size: 13px; font-weight: 500; text-align: center; min-height: 18px; }
+    .gpm-submit  {
+      padding: 13px; background: #1a56db; color: white;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s;
+    }
+    .gpm-submit:hover { background: #1440a8; }
+    .gpm-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  </style>
+</head>
+<body class="auth-body">
+
+  <!-- ── GOOGLE PROFILE MODAL (shown for new Google sign-ups) ── -->
+  <div id="googleProfileOverlay">
+    <div class="gpm-card">
+      <div class="gpm-logo">👤</div>
+      <div class="gpm-title">One More Step!</div>
+      <div class="gpm-sub">Tell us a bit about yourself to complete your account.</div>
+      <div class="gpm-form">
+        <div class="form-group">
+          <label for="gpmName">Display Name</label>
+          <input type="text" id="gpmName" placeholder="Your full name"/>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <div class="phone-input">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="gpmPhone" placeholder="9876543210" maxlength="10"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>I want to…</label>
+          <div class="gpm-role">
+            <button class="gpm-role-btn active" id="gpmRoleUser" onclick="gpmSelectRole('user')">
+              <span>🔍</span>
+              <span>Rent a space</span>
+            </button>
+            <button class="gpm-role-btn" id="gpmRoleOwner" onclick="gpmSelectRole('owner')">
+              <span>🏠</span>
+              <span>List my space</span>
+            </button>
+          </div>
+        </div>
+        <div class="gpm-error" id="gpmError"></div>
+        <button class="gpm-submit" id="gpmSubmitBtn" onclick="submitGoogleProfile()">
+          Complete Sign Up →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <span style="color:#6b7280; font-size:14px;">Already have an account?</span>
+      <a href="login.html" class="btn-primary">Login</a>
+    </div>
+  </nav>
+
+  <!-- SIGNUP FORM -->
+  <div class="auth-container">
+
+    <!-- SIDE PANEL -->
+    <div class="auth-side">
+      <div class="auth-side-content">
+        <div class="auth-side-badge">🏠 Join MicroLease</div>
+        <h2>List Your Space or Find One Near You</h2>
+        <p>Whether you're a homeowner with idle amenities or someone looking for hourly access — MicroLease connects you safely.</p>
+        <div class="auth-side-features">
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Free to sign up — no hidden fees</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>List your amenity in minutes</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Get paid securely after every booking</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Full fraud protection on every transaction</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD -->
+    <div class="auth-card">
+
+      <div class="auth-header">
+        <div class="auth-logo">🚀</div>
+        <h1>Create your account</h1>
+        <p>Join MicroLease for free today</p>
+      </div>
+
+      <!-- ROLE SELECTOR -->
+      <div class="role-selector">
+        <button class="role-btn active" id="roleUser" onclick="selectRole('user')">
+          <span class="role-icon">🔍</span>
+          <span class="role-label">I want to rent</span>
+        </button>
+        <button class="role-btn" id="roleOwner" onclick="selectRole('owner')">
+          <span class="role-icon">🏠</span>
+          <span class="role-label">I want to list</span>
+        </button>
+      </div>
+
+      <!-- GOOGLE SIGNUP -->
+      <button class="btn-google" id="googleSignupBtn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20"/>
+        Continue with Google
+      </button>
+
+      <div class="auth-divider"><span>or sign up with email</span></div>
+
+      <!-- FORM -->
+      <div class="auth-form">
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" placeholder="Arjun" />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" placeholder="Sharma" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <div class="phone-input">
+            <span class="phone-prefix">+91</span>
+            <input type="tel" id="phone" placeholder="9876543210" maxlength="10"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="Min. 8 characters" />
+            <button class="toggle-password" id="togglePassword">👁</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="confirmPassword" placeholder="Repeat your password" />
+            <button class="toggle-password" id="toggleConfirm">👁</button>
+          </div>
+        </div>
+
+        <!-- PASSWORD STRENGTH -->
+        <div class="password-strength" id="passwordStrength">
+          <div class="strength-bar">
+            <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <span class="strength-label" id="strengthLabel">Enter a password</span>
+        </div>
+
+        <label class="checkbox-label" style="font-size:13px;">
+          <input type="checkbox" id="agreeTerms" />
+          I agree to the <a href="#" style="color:#1a56db;">Terms of Service</a> and <a href="#" style="color:#1a56db;">Privacy Policy</a>
+        </label>
+
+        <!-- ERROR -->
+        <div class="auth-error" id="authError"></div>
+
+        <button class="btn-primary btn-full" id="signupBtn">
+          Create My Account
+        </button>
+
+      </div>
+
+      <p class="auth-footer-text">
+        Already have an account? <a href="login.html">Login here</a>
+      </p>
+
+    </div>
+  </div>
+
+    <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+
+<script>
+  // ── Role selector ────────────────────────────────────────
+  let selectedRole = 'user';
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById('roleUser').classList.toggle('active', role === 'user');
+    document.getElementById('roleOwner').classList.toggle('active', role === 'owner');
+  }
+
+  // ── Password strength ────────────────────────────────────
+  document.getElementById('password').addEventListener('input', function() {
+    const val = this.value;
+    const fill = document.getElementById('strengthFill');
+    const label = document.getElementById('strengthLabel');
+    let strength = 0;
+    if (val.length >= 8) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const levels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+    const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+    const widths = ['0%', '25%', '50%', '75%', '100%'];
+    fill.style.width = widths[strength];
+    fill.style.background = colors[strength];
+    label.textContent = strength === 0 ? 'Enter a password' : levels[strength];
+    label.style.color = colors[strength];
+  });
+
+  // ── Toggle password visibility ───────────────────────────
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+  document.getElementById('toggleConfirm').addEventListener('click', function() {
+    const input = document.getElementById('confirmPassword');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+
+  // ── Show error ───────────────────────────────────────────
+  function showError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // ── Email Sign Up ────────────────────────────────────────
+  document.getElementById('signupBtn').addEventListener('click', async function() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const phone     = document.getElementById('phone').value.trim();
+    const password  = document.getElementById('password').value;
+    const confirm   = document.getElementById('confirmPassword').value;
+    const agreed    = document.getElementById('agreeTerms').checked;
+
+    if (!firstName || !lastName) return showError('Please enter your full name.');
+    if (!email)                  return showError('Please enter your email.');
+    if (!phone || phone.length !== 10) return showError('Please enter a valid 10-digit phone number.');
+    if (password.length < 8)     return showError('Password must be at least 8 characters.');
+    if (password !== confirm)    return showError('Passwords do not match.');
+    if (!agreed)                 return showError('Please agree to the Terms of Service.');
+
+    const btn = document.getElementById('signupBtn');
+    btn.textContent = 'Creating account...';
+    btn.disabled = true;
+
+    try {
+      const name = firstName + ' ' + lastName;
+      const user = await signUpWithEmail(name, email, password, selectedRole);
+      await db.collection('users').doc(user.uid).update({ phone: '+91' + phone });
+      if (selectedRole === 'owner') {
+        window.location.href = 'kyc.html';
+      } else {
+        window.location.href = 'map.html';
+      }
+    } catch (err) {
+      btn.textContent = 'Create My Account';
+      btn.disabled = false;
+      if (err.code === 'auth/email-already-in-use') {
+        showError('This email is already registered. Please login.');
+      } else if (err.code === 'auth/invalid-email') {
+        showError('Please enter a valid email address.');
+      } else {
+        showError(err.message);
+      }
+    }
+  });
+
+  // ── Google Sign Up — with profile modal for new users ────
+  let pendingGoogleUid = null;
+  let pendingGoogleUser = null;
+  let gpmRole = 'user';
+
+  function gpmSelectRole(role) {
+    gpmRole = role;
+    document.getElementById('gpmRoleUser').classList.toggle('active', role === 'user');
+    document.getElementById('gpmRoleOwner').classList.toggle('active', role === 'owner');
+  }
+
+  document.getElementById('googleSignupBtn').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Opening Google…';
+    try {
+      const user = await signInWithGoogle();
+
+      // Check if user doc already exists with a name (returning Google user)
+      const existingDoc = await getUserDoc(user.uid);
+      if (existingDoc && existingDoc.name) {
+        // Returning user — check if they need role update from the page selector
+        if (selectedRole === 'owner') {
+          await db.collection('users').doc(user.uid).update({ role: 'owner' });
+          window.location.href = 'kyc.html';
+        } else {
+          window.location.href = 'map.html';
+        }
+        return;
+      }
+
+      // New Google user — show modal to collect name, phone, role
+      pendingGoogleUid = user.uid;
+      pendingGoogleUser = user;
+
+      // Pre-fill name from Google
+      if (user.displayName) {
+        document.getElementById('gpmName').value = user.displayName;
+      }
+
+      // Pre-select role matching the page selector
+      gpmSelectRole(selectedRole);
+
+      // Show modal
+      document.getElementById('googleProfileOverlay').classList.add('visible');
+
+    } catch (err) {
+      showError('Google sign-in failed. Please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20"/> Continue with Google';
+    }
+  });
+
+  async function submitGoogleProfile() {
+    const name  = document.getElementById('gpmName').value.trim();
+    const phone = document.getElementById('gpmPhone').value.trim();
+    const errEl = document.getElementById('gpmError');
+    const btn   = document.getElementById('gpmSubmitBtn');
+
+    errEl.textContent = '';
+
+    if (!name)                  { errEl.textContent = 'Please enter your display name.'; return; }
+    if (!phone || phone.length !== 10) { errEl.textContent = 'Please enter a valid 10-digit phone number.'; return; }
+
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      // Update Firebase Auth display name
+      if (pendingGoogleUser) {
+        await pendingGoogleUser.updateProfile({ displayName: name });
+      }
+
+      // Overwrite the user doc (merge:true so we don't lose any sub-fields)
+      await db.collection('users').doc(pendingGoogleUid).set({
+        uid:       pendingGoogleUid,
+        name:      name,
+        email:     pendingGoogleUser ? pendingGoogleUser.email : '',
+        role:      gpmRole,
+        phone:     '+91' + phone,
+        kycStatus: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      // Redirect
+      document.getElementById('googleProfileOverlay').classList.remove('visible');
+      if (gpmRole === 'owner') {
+        window.location.href = 'kyc.html';
+      } else {
+        window.location.href = 'map.html';
+      }
+    } catch (err) {
+      errEl.textContent = 'Failed to save profile: ' + err.message;
+      btn.textContent = 'Complete Sign Up →';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KYC Verification — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="auth-body">
+
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <span class="kyc-nav-status">Step <span id="currentStep">1</span> of 3</span>
+    </div>
+  </nav>
+
+  <div class="kyc-container">
+
+    <div class="kyc-progress">
+      <div class="kyc-progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="kyc-steps-indicator">
+      <div class="kyc-step-dot active" id="dot1">
+        <span class="dot-num">1</span>
+        <span class="dot-label">ID Proof</span>
+      </div>
+      <div class="kyc-step-line" id="line1"></div>
+      <div class="kyc-step-dot" id="dot2">
+        <span class="dot-num">2</span>
+        <span class="dot-label">Live Selfie</span>
+      </div>
+      <div class="kyc-step-line" id="line2"></div>
+      <div class="kyc-step-dot" id="dot3">
+        <span class="dot-num">3</span>
+        <span class="dot-label">Verification</span>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: ID UPLOAD ── -->
+    <div class="kyc-card" id="step1">
+      <div class="kyc-card-header">
+        <div class="kyc-icon">🪪</div>
+        <h2>Upload ID Proof</h2>
+        <p>Upload a clear photo of your government-issued ID.
+           Only JPG and PNG image files are accepted.</p>
+      </div>
+
+      <!-- FORMAT NOTE -->
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;
+        padding:10px 14px;font-size:12px;font-weight:600;color:#15803d;
+        text-align:center;width:100%;box-sizing:border-box;margin-bottom:4px;">
+        ✅ Accepted: JPG, PNG only &nbsp;|&nbsp;
+        ❌ Not accepted: PDF, Word, Excel, any non-image file
+      </div>
+
+      <div class="id-type-selector">
+        <button class="id-type-btn active"
+          onclick="selectID(this,'aadhaar')">🪪 Aadhaar Card</button>
+        <button class="id-type-btn"
+          onclick="selectID(this,'passport')">📘 Passport</button>
+        <button class="id-type-btn"
+          onclick="selectID(this,'licence')">🚗 Driving Licence</button>
+      </div>
+
+      <div class="upload-area" id="uploadArea"
+        onclick="document.getElementById('idFile').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleDrop(event)">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">
+          <strong>Click to upload your ID photo</strong>
+          <span>or drag and drop here</span>
+        </div>
+        <div class="upload-hint">JPG or PNG only — Max 5MB — Must show your face</div>
+        <input type="file" id="idFile"
+          accept="image/jpeg,image/jpg,image/png"
+          style="display:none"
+          onchange="handleIDFile(this)"/>
+      </div>
+
+      <div class="upload-preview" id="uploadPreview" style="display:none">
+        <img id="previewImg" src="" alt="ID Preview"/>
+        <div class="preview-info">
+          <span id="previewName"></span>
+          <div id="faceCheckStatus" style="font-size:12px;font-weight:600;
+            margin-top:4px;color:#6b7280;">
+          </div>
+          <button onclick="removeFile()" class="remove-file">✕ Remove</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:4px;width:100%;">
+        <label for="idNumber">ID Number</label>
+        <input type="text" id="idNumber"
+          placeholder="Enter your ID number"/>
+      </div>
+
+      <div id="step1Error" style="color:#dc2626;font-size:13px;font-weight:600;
+        min-height:18px;text-align:center;width:100%;"></div>
+
+      <div class="kyc-actions">
+        <button class="btn-primary btn-full"
+          id="step1Btn" onclick="proceedToSelfie()" disabled>
+          Continue to Selfie →
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: SELFIE ── -->
+    <div class="kyc-card" id="step2" style="display:none">
+      <div class="kyc-card-header">
+        <div class="kyc-icon">🤳</div>
+        <h2>Take a Live Selfie</h2>
+        <p>Position your face inside the oval. Look directly at the camera
+           in good lighting.</p>
+      </div>
+
+      <div class="selfie-tips">
+        <div class="selfie-tip" id="tip1">⬜ Face centred</div>
+        <div class="selfie-tip" id="tip2">⬜ Good lighting</div>
+        <div class="selfie-tip" id="tip3">⬜ Looking at camera</div>
+        <div class="selfie-tip">❌ No old photos</div>
+      </div>
+
+      <div class="camera-container" id="cameraContainer">
+        <video id="cameraFeed" autoplay playsinline
+          style="transform:scaleX(-1);width:100%;height:100%;object-fit:cover;">
+        </video>
+        <div class="camera-overlay">
+          <div class="face-guide"></div>
+        </div>
+        <canvas id="captureCanvas" style="display:none"></canvas>
+      </div>
+
+      <div class="selfie-preview" id="selfiePreview" style="display:none">
+        <img id="selfieImg" src="" alt="Selfie"/>
+        <button class="btn-outline" onclick="retakeSelfie()"
+          style="margin-top:12px;width:100%;">
+          🔄 Retake Selfie
+        </button>
+      </div>
+
+      <div id="step2Error" style="color:#dc2626;font-size:13px;
+        font-weight:600;min-height:18px;text-align:center;"></div>
+
+      <div class="kyc-actions" style="gap:12px;display:flex;flex-direction:column;">
+        <button class="btn-primary btn-full"
+          id="captureBtn" onclick="captureSelfie()">
+          📸 Capture Selfie
+        </button>
+        <button class="btn-outline btn-full" onclick="goToStep(1)">
+          ← Back to ID Upload
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: VERIFICATION ── -->
+    <div class="kyc-card" id="step3" style="display:none">
+      <div class="kyc-card-header">
+        <div class="kyc-icon">🔍</div>
+        <h2>Verifying Your Identity</h2>
+        <p>Sending your photos to our face verification system.
+           This takes a few seconds.</p>
+      </div>
+
+      <!-- PHOTOS BEING COMPARED -->
+      <div style="display:flex;align-items:center;gap:16px;
+        justify-content:center;margin:8px 0;">
+        <div style="text-align:center;">
+          <img id="vaID" style="width:90px;height:90px;object-fit:cover;
+            border-radius:10px;border:2px solid #e5e7eb;"/>
+          <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+            ID Document
+          </div>
+        </div>
+        <div style="font-size:24px;">↔️</div>
+        <div style="text-align:center;">
+          <img id="vaSelfie" style="width:90px;height:90px;object-fit:cover;
+            border-radius:10px;border:2px solid #e5e7eb;"/>
+          <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+            Your Selfie
+          </div>
+        </div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div style="width:100%;height:8px;background:#e5e7eb;
+        border-radius:100px;overflow:hidden;">
+        <div id="matchProgress" style="height:100%;width:0%;background:#1a56db;
+          border-radius:100px;transition:width 0.6s ease;"></div>
+      </div>
+      <div id="matchStatus" style="font-size:13px;color:#6b7280;
+        text-align:center;margin-top:6px;">
+        Preparing verification...
+      </div>
+
+      <div class="verification-progress" id="verifyProgress">
+        <div class="verify-step pending" id="vs1">
+          <div class="verify-spinner pending"></div>
+          <span>Uploading documents securely...</span>
+        </div>
+        <div class="verify-step pending" id="vs2">
+          <div class="verify-spinner pending"></div>
+          <span>Running face match analysis...</span>
+        </div>
+        <div class="verify-step pending" id="vs3">
+          <div class="verify-spinner pending"></div>
+          <span>Finalising verification...</span>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="verify-result success" id="verifySuccess" style="display:none">
+        <div class="result-icon">✅</div>
+        <h3>Face Match Successful!</h3>
+        <div style="text-align:center;padding:16px;background:#f0fdf4;
+          border-radius:14px;border:1px solid #86efac;margin:12px 0;width:100%;">
+          <div style="font-size:42px;font-weight:800;color:#059669;"
+            id="matchScoreDisplay">—%</div>
+          <div style="font-size:12px;color:#6b7280;">Face Match Confidence</div>
+        </div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:13px;color:#374151;padding:8px 12px;
+            background:#f9fafb;border-radius:8px;">
+            ✅ Face detected in ID document
+          </div>
+          <div style="font-size:13px;color:#374151;padding:8px 12px;
+            background:#f9fafb;border-radius:8px;">
+            ✅ Face detected in selfie
+          </div>
+          <div style="font-size:13px;color:#374151;padding:8px 12px;
+            background:#f9fafb;border-radius:8px;" id="matchConfidenceRow">
+            ✅ Faces match with high confidence
+          </div>
+        </div>
+        <div class="verified-badge-large"><span>✓</span> Pending Admin Review</div>
+        <p style="font-size:12px;color:#1d4ed8;background:#dbeafe;
+          border:1px solid #93c5fd;border-radius:10px;padding:10px;
+          text-align:center;width:100%;margin-top:8px;">
+          🔍 Your documents are submitted for final admin review.
+          You will be notified once approved (usually within 24 hours).
+        </p>
+        <a href="owner-dashboard.html" class="btn-primary btn-full"
+          style="text-align:center;margin-top:8px;">
+          Go to My Dashboard →
+        </a>
+      </div>
+
+      <!-- FAILED -->
+      <div class="verify-result failed" id="verifyFailed" style="display:none">
+        <div class="result-icon">❌</div>
+        <h3>Verification Failed</h3>
+        <div id="failReasonText" style="font-size:13px;color:#dc2626;
+          background:#fee2e2;border-radius:10px;padding:12px;
+          text-align:center;width:100%;margin:8px 0;"></div>
+        <div style="font-size:12px;color:#374151;background:#f9fafb;
+          border-radius:10px;padding:14px;width:100%;line-height:1.8;">
+          <strong>Tips to improve your result:</strong><br/>
+          • Make sure your ID photo clearly shows your face<br/>
+          • Take your selfie in good lighting<br/>
+          • Look directly at the camera<br/>
+          • Remove glasses or anything covering your face
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;width:100%;">
+          <button class="btn-outline btn-full" onclick="restartKYC()">
+            🔄 Try Again
+          </button>
+          <button class="btn-primary btn-full" onclick="submitManualReview()">
+            Submit for Manual Review
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // ── BACKEND URL ──
+    // Change to your Railway URL after deployment
+    // e.g. https://microlease-backend.up.railway.app
+    const BACKEND_URL = 'http://localhost:3000';
+
+    // ── GLOBALS ──
+    let selectedIDType  = 'aadhaar';
+    let idImageDataURL  = null;
+    let selfieDataURL   = null;
+    let cameraStream    = null;
+
+    // ── ID TYPE ──
+    function selectID(btn, type) {
+      document.querySelectorAll('.id-type-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedIDType = type;
+    }
+
+    // ── DRAG AND DROP ──
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('uploadArea').classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) processIDFile(file);
+    }
+
+    function handleIDFile(input) {
+      const file = input.files[0];
+      if (file) processIDFile(file);
+    }
+
+    // ── PROCESS ID FILE ──
+    function processIDFile(file) {
+      const error = document.getElementById('step1Error');
+      error.textContent = '';
+
+      // STRICT IMAGE ONLY CHECK
+      const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowed.includes(file.type)) {
+        error.textContent =
+          '❌ Invalid file. Only JPG and PNG photos are accepted. ' +
+          'PDF, Word and other documents are not allowed.';
+        document.getElementById('idFile').value = '';
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        error.textContent = '❌ File too large. Maximum size is 5MB.';
+        document.getElementById('idFile').value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        idImageDataURL = e.target.result;
+        document.getElementById('previewImg').src = idImageDataURL;
+        document.getElementById('previewName').textContent = file.name;
+        document.getElementById('uploadArea').style.display    = 'none';
+        document.getElementById('uploadPreview').style.display = 'flex';
+        document.getElementById('faceCheckStatus').textContent =
+          '✅ Photo uploaded — face will be verified on submission';
+        document.getElementById('faceCheckStatus').style.color = '#059669';
+        document.getElementById('step1Btn').disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeFile() {
+      idImageDataURL = null;
+      document.getElementById('idFile').value = '';
+      document.getElementById('previewImg').src = '';
+      document.getElementById('uploadArea').style.display    = 'flex';
+      document.getElementById('uploadPreview').style.display = 'none';
+      document.getElementById('step1Btn').disabled = true;
+      document.getElementById('step1Error').textContent = '';
+    }
+
+    // ── STEP 1 → STEP 2 ──
+    function proceedToSelfie() {
+      const error = document.getElementById('step1Error');
+      if (!idImageDataURL) {
+        error.textContent = '❌ Please upload your ID document first.';
+        return;
+      }
+      const idNum = document.getElementById('idNumber').value.trim();
+      if (!idNum || idNum.length < 6) {
+        error.textContent = '❌ Please enter a valid ID number (at least 6 characters).';
+        return;
+      }
+      error.textContent = '';
+      goToStep(2);
+      startCamera();
+    }
+
+    // ── CAMERA ──
+    async function startCamera() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 400, height: 400 },
+          audio: false
+        });
+        document.getElementById('cameraFeed').srcObject = cameraStream;
+      } catch(err) {
+        document.getElementById('step2Error').textContent =
+          '❌ Camera access denied. Please allow camera access and refresh.';
+      }
+    }
+
+    function captureSelfie() {
+      const video  = document.getElementById('cameraFeed');
+      const canvas = document.getElementById('captureCanvas');
+      canvas.width  = video.videoWidth  || 400;
+      canvas.height = video.videoHeight || 400;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      selfieDataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+      }
+
+      document.getElementById('selfieImg').src               = selfieDataURL;
+      document.getElementById('cameraContainer').style.display = 'none';
+      document.getElementById('selfiePreview').style.display   = 'block';
+
+      const btn = document.getElementById('captureBtn');
+      btn.textContent = '✓ Continue to Verification';
+      btn.onclick     = proceedToVerification;
+    }
+
+    function retakeSelfie() {
+      selfieDataURL = null;
+      document.getElementById('cameraContainer').style.display = 'block';
+      document.getElementById('selfiePreview').style.display   = 'none';
+      const btn = document.getElementById('captureBtn');
+      btn.textContent = '📸 Capture Selfie';
+      btn.onclick     = captureSelfie;
+      startCamera();
+    }
+
+    // ── STEP 2 → STEP 3 ──
+    function proceedToVerification() {
+      goToStep(3);
+      document.getElementById('vaID').src     = idImageDataURL;
+      document.getElementById('vaSelfie').src = selfieDataURL;
+      runFacePlusPlus();
+    }
+
+    // ── REAL FACE++ COMPARISON VIA BACKEND ──
+    // ── Cloudinary config (same as create-listing) ──
+    const CLOUDINARY_CLOUD  = 'dpy60wytz';
+    const CLOUDINARY_PRESET = 'micro_lease';
+
+    // ── Upload a base64 dataURL to Cloudinary, return secure_url ──
+    async function uploadToCloudinary(dataURL, folder) {
+      const blob = await (await fetch(dataURL)).blob();
+      const fd   = new FormData();
+      fd.append('file',           blob);
+      fd.append('upload_preset',  CLOUDINARY_PRESET);
+      fd.append('folder',         folder);
+      const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+        method: 'POST', body: fd
+      });
+      const data = await res.json();
+      if (!data.secure_url) throw new Error('Cloudinary upload failed: ' + (data.error?.message || 'unknown'));
+      return data.secure_url;
+    }
+
+    async function runFacePlusPlus() {
+      const progress = document.getElementById('matchProgress');
+      const status   = document.getElementById('matchStatus');
+
+      function setProgress(pct, msg) {
+        progress.style.width = pct + '%';
+        status.textContent   = msg;
+      }
+
+      setProgress(5, 'Uploading ID document...');
+      tickStep('vs1', false);
+
+      const user = firebase.auth().currentUser;
+      if (!user) { showFailed('❌ You must be logged in to complete KYC.'); return; }
+
+      // ── STEP 1: Upload both photos to Cloudinary so URLs are persisted ──
+      let idPhotoUrl, selfieUrl;
+      try {
+        idPhotoUrl = await uploadToCloudinary(idImageDataURL, `kyc/${user.uid}/id`);
+        setProgress(20, 'Uploading selfie...');
+        selfieUrl  = await uploadToCloudinary(selfieDataURL,  `kyc/${user.uid}/selfie`);
+        setProgress(40, 'Photos uploaded. Running face match...');
+        tickStep('vs1', true);
+      } catch(uploadErr) {
+        console.warn('Cloudinary upload failed:', uploadErr.message);
+        // Still proceed — save base64 fallback won't be shown but KYC can continue
+        idPhotoUrl = null;
+        selfieUrl  = null;
+        setProgress(40, 'Running face match...');
+        tickStep('vs1', true);
+      }
+
+      tickStep('vs2', false);
+      await sleep(300);
+
+      // ── STEP 2: Call Face++ via backend ──
+      let idToken;
+      try { idToken = await user.getIdToken(); }
+      catch(e) { showFailed('❌ Authentication error. Please refresh.'); return; }
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/kyc/compare`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({
+            idImageBase64: idImageDataURL,
+            selfieBase64:  selfieDataURL,
+            idPhotoUrl,   // persist to Firestore
+            selfieUrl,    // persist to Firestore
+            userId:        user.uid,
+            docType:       selectedIDType
+          })
+        });
+
+        const result = await response.json();
+        tickStep('vs2', true);
+        setProgress(80, 'Finalising verification...');
+        tickStep('vs3', false);
+        await sleep(400);
+        tickStep('vs3', true);
+        setProgress(100, 'Analysis complete.');
+        await sleep(300);
+
+        if (result.manual) {
+          showSuccess(0, true);
+          return;
+        }
+        if (result.matched) {
+          showSuccess(result.confidence, false);
+        } else {
+          if (result.error === 'No face found') {
+            showFailed('❌ ' + result.message + '. Please use a clear photo ID and retake your selfie.');
+          } else if (result.error === 'Image quality issue') {
+            showFailed('❌ ' + result.message);
+          } else {
+            showFailed(`❌ Face match confidence too low (${result.confidence}%). The faces do not appear to match. Please try with clearer photos.`);
+          }
+        }
+
+      } catch(backendErr) {
+        // ── STEP 3: Backend unreachable — run scoring directly in browser via Face++ ──
+        console.warn('Backend not reachable, trying direct Face++ call:', backendErr.message);
+        tickStep('vs2', true);
+        setProgress(80, 'Running direct face analysis...');
+        tickStep('vs3', false);
+
+        try {
+          const FACEPP_KEY    = '4jFi6cwH7IS4cfi43kcO5FxR-xpk5nAC';
+          const FACEPP_SECRET = 'HrodJ7SBLKFnBuZFPuJUS1XetjFBG8N8';
+
+          const fd = new FormData();
+          fd.append('api_key',    FACEPP_KEY);
+          fd.append('api_secret', FACEPP_SECRET);
+
+          // Use Cloudinary URLs if available (better quality), else base64
+          if (idPhotoUrl && selfieUrl) {
+            fd.append('image_url1', idPhotoUrl);
+            fd.append('image_url2', selfieUrl);
+          } else {
+            fd.append('image_base64_1', idImageDataURL.replace(/^data:image\/\w+;base64,/, ''));
+            fd.append('image_base64_2', selfieDataURL.replace(/^data:image\/\w+;base64,/, ''));
+          }
+
+          const fpRes  = await fetch('https://api-us.faceplusplus.com/facepp/v3/compare', { method: 'POST', body: fd });
+          const fpData = await fpRes.json();
+
+          if (fpData.error_message) throw new Error(fpData.error_message);
+
+          const confidence = Math.round(fpData.confidence || 0);
+          // ── THRESHOLDS: ≥80 auto-verified, 65-79 manual review, <65 rejected ──
+          let kycStatus, isManual;
+          if (confidence >= 80) {
+            kycStatus = 'verified'; isManual = false;
+          } else if (confidence >= 65) {
+            kycStatus = 'manual_review'; isManual = true;
+          } else {
+            // Below 65 — auto reject, show failure
+            tickStep('vs3', true);
+            setProgress(100, 'Analysis complete.');
+            showFailed(`❌ Face match too low (${confidence}%). Faces do not appear to match. Please use a clearer ID photo and retake your selfie.`);
+            // Save rejected status
+            await db.collection('kyc_submissions').doc(user.uid).set({
+              userId: user.uid, status: 'rejected', confidence,
+              idPhotoUrl: idPhotoUrl || null, selfieUrl: selfieUrl || null,
+              docType: selectedIDType,
+              submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            return;
+          }
+
+          // Save result with photo URLs so admin can see them
+          await db.collection('kyc_submissions').doc(user.uid).set({
+            userId: user.uid, status: kycStatus, confidence,
+            idPhotoUrl: idPhotoUrl || null, selfieUrl: selfieUrl || null,
+            docType: selectedIDType,
+            submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+
+          await db.collection('users').doc(user.uid).update({
+            kycStatus, kycSubmittedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          tickStep('vs3', true);
+          setProgress(100, 'Analysis complete.');
+          showSuccess(confidence, isManual);
+
+        } catch(fpErr) {
+          console.warn('Direct Face++ also failed:', fpErr.message);
+          // Final fallback — manual review, still save photo URLs
+          await db.collection('kyc_submissions').doc(user.uid).set({
+            userId: user.uid, status: 'manual_review', confidence: 0,
+            idPhotoUrl: idPhotoUrl || null, selfieUrl: selfieUrl || null,
+            docType: selectedIDType, reason: 'Face++ unavailable',
+            submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          await db.collection('users').doc(user.uid).update({ kycStatus: 'manual_review' });
+          tickStep('vs3', true);
+          setProgress(100, 'Submitted for manual review.');
+          showSuccess(0, true);
+        }
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    function tickStep(id, done) {
+      const el = document.getElementById(id);
+      el.classList.remove('pending');
+      if (done) {
+        el.classList.add('done');
+        const sp = el.querySelector('.verify-spinner');
+        if (sp) sp.innerHTML = '✓';
+      }
+    }
+
+    function showSuccess(score, isManual) {
+      document.getElementById('verifyProgress').style.display = 'none';
+      document.getElementById('verifySuccess').style.display  = 'block';
+
+      const scoreEl = document.getElementById('matchScoreDisplay');
+      const labelEl = document.getElementById('matchConfidenceRow');
+
+      if (isManual || score === 0) {
+        scoreEl.textContent  = 'Review';
+        scoreEl.style.fontSize = '24px';
+        labelEl.textContent  = '⚠️ Score 65–79%: Submitted for admin review';
+      } else if (score >= 80) {
+        scoreEl.textContent  = score + '%';
+        labelEl.textContent  = '✅ Auto-verified! High confidence match (≥80%)';
+        labelEl.style.color  = '#059669';
+      } else {
+        scoreEl.textContent  = score + '%';
+        labelEl.textContent  = '⚠️ Moderate match — admin will review shortly';
+      }
+    }
+
+    function showFailed(reason) {
+      document.getElementById('verifyProgress').style.display = 'none';
+      document.getElementById('verifyFailed').style.display   = 'block';
+      document.getElementById('failReasonText').textContent   = reason;
+    }
+
+    async function submitManualReview() {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        try {
+          await submitKYC(user.uid, 'manual_review');
+        } catch(e) { console.warn('Manual review save:', e); }
+      }
+      showSuccess(0, true);
+    }
+
+    function restartKYC() {
+      idImageDataURL = selfieDataURL = null;
+      removeFile();
+      document.getElementById('verifyProgress').style.display = 'block';
+      document.getElementById('verifySuccess').style.display  = 'none';
+      document.getElementById('verifyFailed').style.display   = 'none';
+      document.getElementById('matchProgress').style.width    = '0%';
+      document.getElementById('matchStatus').textContent      = 'Preparing...';
+      ['vs1','vs2','vs3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('pending');
+        el.classList.remove('done');
+        const sp = el.querySelector('.verify-spinner');
+        if (sp) sp.innerHTML = '';
+      });
+      document.getElementById('cameraContainer').style.display = 'block';
+      document.getElementById('selfiePreview').style.display   = 'none';
+      const btn = document.getElementById('captureBtn');
+      btn.textContent = '📸 Capture Selfie';
+      btn.onclick     = captureSelfie;
+      goToStep(1);
+    }
+
+    // ── STEP NAVIGATION ──
+    function goToStep(step) {
+      [1,2,3].forEach(i => {
+        document.getElementById('step' + i).style.display = 'none';
+      });
+      document.getElementById('step' + step).style.display = 'block';
+      document.getElementById('currentStep').textContent = step;
+
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById('dot' + i);
+        dot.classList.remove('active','done');
+        if (i < step)  dot.classList.add('done');
+        if (i === step) dot.classList.add('active');
+      }
+      for (let i = 1; i <= 2; i++) {
+        const line = document.getElementById('line' + i);
+        if (line) line.classList.toggle('done', i < step);
+      }
+      document.getElementById('progressBar').style.width =
+        (((step - 1) / 2) * 100) + '%';
+
+      if (step === 2) startCamera();
+    }
+  </script>
+</body>
+</html>

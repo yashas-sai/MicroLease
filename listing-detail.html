@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listing Detail — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    #locationMap { height: 280px; border-radius: 12px; border: 1.5px solid #e5e7eb; overflow: hidden; }
+
+    /* ── REVIEWS ── */
+    .reviews-summary { display: flex; gap: 24px; align-items: flex-start; margin-bottom: 24px; }
+    .reviews-score {
+      font-size: 52px; font-weight: 800; color: #111827;
+      min-width: 80px; text-align: center; line-height: 1;
+    }
+    .reviews-score-sub { font-size: 12px; color: #6b7280; margin-top: 4px; text-align: center; }
+    .reviews-breakdown { flex: 1; }
+    .review-bar-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: #374151; margin-bottom: 6px;
+    }
+    .review-bar-row > span:first-child { min-width: 80px; }
+    .review-bar { flex: 1; height: 6px; background: #e5e7eb; border-radius: 100px; overflow: hidden; }
+    .review-bar-fill { height: 100%; background: #1a56db; border-radius: 100px; transition: width 0.4s; }
+    .review-bar-row > span:last-child { min-width: 28px; text-align: right; font-weight: 600; }
+
+    .reviews-list { display: flex; flex-direction: column; gap: 20px; margin-top: 4px; }
+    .review-card {
+      background: #f9fafb; border: 1px solid #e5e7eb;
+      border-radius: 14px; padding: 18px 20px;
+    }
+    .review-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .review-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #1a56db, #60a5fa);
+      color: white; font-size: 15px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .review-name { font-weight: 700; font-size: 14px; color: #111827; }
+    .review-date { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .review-stars { margin-left: auto; font-size: 14px; letter-spacing: 1px; }
+    .review-text { font-size: 13px; color: #374151; line-height: 1.65; }
+
+    .reviews-empty {
+      text-align: center; padding: 40px 20px; color: #9ca3af;
+      font-size: 14px; background: #f9fafb; border-radius: 14px; border: 1px dashed #e5e7eb;
+    }
+    .reviews-empty div { font-size: 36px; margin-bottom: 8px; }
+
+    /* ── WRITE A REVIEW FORM ── */
+    .review-form-section {
+      margin-top: 28px; padding: 24px; background: white;
+      border: 1.5px solid #e5e7eb; border-radius: 16px;
+    }
+    .review-form-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #111827; }
+    .star-picker { display: flex; gap: 6px; margin-bottom: 14px; }
+    .star-picker span {
+      font-size: 28px; cursor: pointer; opacity: 0.3;
+      transition: opacity 0.15s, transform 0.15s;
+      user-select: none;
+    }
+    .star-picker span.active { opacity: 1; transform: scale(1.15); }
+    .star-picker span:hover { opacity: 0.8; }
+    .review-form-section textarea {
+      width: 100%; padding: 12px 14px; border: 1.5px solid #e5e7eb;
+      border-radius: 10px; font-size: 13px; font-family: 'Inter', sans-serif;
+      resize: vertical; min-height: 90px; outline: none; transition: border-color 0.2s;
+    }
+    .review-form-section textarea:focus { border-color: #1a56db; }
+    .review-submit-btn {
+      margin-top: 12px; padding: 11px 28px; background: #1a56db; color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s;
+    }
+    .review-submit-btn:hover { background: #1440a8; }
+    .review-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .review-form-error { color: #dc2626; font-size: 12px; margin-top: 6px; }
+    .review-form-success { color: #059669; font-size: 12px; margin-top: 6px; font-weight: 600; }
+    .review-login-note {
+      text-align: center; padding: 16px; background: #f0f4ff;
+      border-radius: 12px; font-size: 13px; color: #374151; margin-top: 20px;
+    }
+    .review-login-note a { color: #1a56db; font-weight: 600; }
+  </style>
+</head>
+<body class="dashboard-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <a href="map.html" class="btn-outline">← Back to Map</a>
+      <div class="nav-avatar" id="navAvatar">U</div>
+    </div>
+  </nav>
+
+  <!-- DETAIL LAYOUT -->
+  <div class="detail-container">
+
+    <!-- LEFT: MAIN CONTENT -->
+    <div class="detail-main">
+
+      <!-- PHOTO GALLERY -->
+      <div class="gallery">
+        <div class="gallery-main" id="galleryMain">
+          <span class="gallery-emoji" id="galleryEmoji">🏊</span>
+        </div>
+        <div class="gallery-thumbs" id="galleryThumbs">
+          <div class="gallery-thumb active">🏊</div>
+          <div class="gallery-thumb">🏊</div>
+          <div class="gallery-thumb">🏊</div>
+          <div class="gallery-thumb">🏊</div>
+        </div>
+      </div>
+
+      <!-- LISTING HEADER -->
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <div class="detail-type" id="detailType">🏊 Pool</div>
+          <h1 class="detail-title" id="detailTitle">
+            Rooftop Pool with City View
+          </h1>
+          <div class="detail-meta-row">
+            <span class="detail-location" id="detailLocation">
+              📍 Banjara Hills, Hyderabad
+            </span>
+            <span class="detail-rating" id="detailRating">
+              ⭐ — (0 reviews)
+            </span>
+            <span class="detail-guests" id="detailGuests">
+              👥 Up to 6 guests
+            </span>
+          </div>
+          <div class="detail-badges">
+            <span class="detail-badge verified">✓ Verified Owner</span>
+            <span class="detail-badge instant">⚡ Instant Book</span>
+            <span class="detail-badge safe">🔒 Escrow Protected</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- OWNER INFO -->
+      <div class="owner-section">
+        <div class="owner-avatar" id="ownerAvatar">R</div>
+        <div class="owner-info">
+          <div class="owner-name" id="ownerName">Owner</div>
+          <div class="owner-meta">
+            <span class="owner-verified">✓ Verified Owner</span>
+            <span>• Member since 2024</span>
+            <span>• Response rate: 98%</span>
+          </div>
+        </div>
+        <button class="btn-outline owner-contact-btn">Message Owner</button>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- DESCRIPTION -->
+      <div class="detail-section">
+        <h2>About This Space</h2>
+        <p class="detail-desc" id="detailDesc">
+          Loading…
+        </p>
+        <button class="show-more-btn" id="showMoreBtn" onclick="toggleDesc()">
+          Show more ↓
+        </button>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- INCLUDED AMENITIES -->
+      <div class="detail-section">
+        <h2>What's Included</h2>
+        <div class="included-grid" id="includedGrid">
+          <div class="included-item">Loading…</div>
+        </div>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- AVAILABILITY -->
+      <div class="detail-section">
+        <h2>Availability</h2>
+        <div class="availability-days" id="availDays">
+          <span class="avail-day active">Mon</span>
+          <span class="avail-day active">Tue</span>
+          <span class="avail-day active">Wed</span>
+          <span class="avail-day active">Thu</span>
+          <span class="avail-day active">Fri</span>
+          <span class="avail-day">Sat</span>
+          <span class="avail-day">Sun</span>
+        </div>
+        <p class="avail-time" id="availTime">
+          🕐 Available 8:00 AM – 10:00 PM
+        </p>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- LOCATION MAP PREVIEW -->
+      <div class="detail-section">
+        <h2>Location</h2>
+        <p class="location-note-text" id="locationNoteText">
+          📍 Loading…
+          <br/>
+          <small>Exact address shared after booking confirmation.</small>
+        </p>
+        <!-- Leaflet map will render here -->
+        <div id="locationMap"></div>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- REVIEWS -->
+      <div class="detail-section">
+        <h2>Reviews <span class="review-count" id="reviewCount"></span></h2>
+
+        <!-- Dynamic summary -->
+        <div id="reviewsSummary"></div>
+
+        <!-- Dynamic list -->
+        <div class="reviews-list" id="reviewsList">
+          <div class="reviews-empty">
+            <div>⏳</div>
+            <p>Loading reviews…</p>
+          </div>
+        </div>
+
+        <!-- Write a review: login gating handled by JS -->
+        <div id="reviewFormContainer"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: BOOKING WIDGET -->
+    <div class="detail-sidebar">
+      <div class="booking-widget">
+
+        <!-- PRICE -->
+        <div class="bw-price">
+          <span class="bw-price-amount" id="bwPrice">₹499</span>
+          <span class="bw-price-unit">/ hour</span>
+        </div>
+
+        <!-- DATE PICKER -->
+        <div class="form-group">
+          <label>Select Date</label>
+          <input type="date" id="bookingDate" min=""
+            oninput="updateSlots()"/>
+        </div>
+
+        <!-- TIME SLOTS -->
+        <div class="form-group">
+          <label>Available Slots</label>
+          <div class="slots-grid" id="slotsGrid">
+            <div class="slot-placeholder">Select a date first</div>
+          </div>
+        </div>
+
+        <!-- DURATION -->
+        <div class="form-group">
+          <label>Duration</label>
+          <div class="duration-selector">
+            <button onclick="changeDuration(-1)">−</button>
+            <span id="durationDisplay">1 hour</span>
+            <button onclick="changeDuration(1)">+</button>
+          </div>
+        </div>
+
+        <!-- GUESTS -->
+        <div class="form-group">
+          <label>Guests</label>
+          <div class="duration-selector">
+            <button onclick="changeGuests(-1)">−</button>
+            <span id="guestsDisplay">1 guest</span>
+            <button onclick="changeGuests(1)">+</button>
+          </div>
+        </div>
+
+        <!-- PRICE BREAKDOWN -->
+        <div class="bw-breakdown" id="bwBreakdown" style="display:none">
+          <div class="bw-row">
+            <span id="bwRateLabel">₹499 × 1 hour</span>
+            <span id="bwSubtotal">₹499</span>
+          </div>
+          <div class="bw-row">
+            <span>Platform fee</span>
+            <span id="bwFee">₹50</span>
+          </div>
+          <div class="bw-row total">
+            <span>Total</span>
+            <span id="bwTotal">₹549</span>
+          </div>
+        </div>
+
+        <!-- ESCROW NOTE -->
+        <div class="bw-escrow-note">
+          🔒 Your payment is held securely until you confirm arrival.
+          Fake listing? Instant refund, no questions asked.
+        </div>
+
+        <!-- ERROR -->
+        <div class="auth-error" id="bookingError"></div>
+
+        <!-- BOOK BUTTON -->
+        <button class="btn-primary btn-full bw-book-btn"
+          id="bookBtn" onclick="proceedToBooking()">
+          Reserve Now
+        </button>
+
+        <p class="bw-note">You won't be charged yet</p>
+
+      </div>
+
+      <!-- SAFETY CARD -->
+      <div class="safety-card">
+        <h3>🛡️ You're Protected</h3>
+        <div class="safety-item">
+          <span>✓</span>
+          <p>Payment held in escrow until you confirm arrival</p>
+        </div>
+        <div class="safety-item">
+          <span>✓</span>
+          <p>Instant refund if listing doesn't match description</p>
+        </div>
+        <div class="safety-item">
+          <span>✓</span>
+          <p>Owner identity verified with government ID</p>
+        </div>
+        <div class="safety-item">
+          <span>✓</span>
+          <p>24/7 support for any booking issues</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+ <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MicroLease app -->
+<script src="js/app.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  let selectedSlot = null;
+  let duration = 1;
+  let guests = 1;
+  let hourlyRate = 499;
+  let maxGuests = 6;
+  let currentListing = null;
+  let detailMap = null;
+
+  // ── LOAD LISTING FROM FIRESTORE ──
+  async function loadListing() {
+    const listingId = getParam('id');
+    if (!listingId) {
+      document.getElementById('detailTitle').textContent = 'Listing not found';
+      return;
+    }
+
+    try {
+      const listing = await getListingById(listingId);
+      if (!listing) { document.getElementById('detailTitle').textContent = 'Listing not found'; return; }
+
+      currentListing = listing;
+      hourlyRate = listing.price;
+      maxGuests  = listing.guests || 6;
+
+      // Populate page
+      document.getElementById('detailTitle').textContent       = listing.title;
+      document.getElementById('detailType').textContent        = listing.type.charAt(0).toUpperCase() + listing.type.slice(1);
+      document.getElementById('detailLocation').textContent    = '📍 ' + (listing.area || '') + ', ' + listing.city;
+      document.getElementById('bwPrice').textContent           = '₹' + listing.price;
+      document.getElementById('detailDesc').textContent        = listing.description || '';
+      document.getElementById('ownerName').textContent         = listing.ownerName || 'Verified Owner';
+      document.getElementById('ownerAvatar').textContent       = (listing.ownerName || 'O').charAt(0).toUpperCase();
+      document.getElementById('detailGuests').textContent      = '👥 Up to ' + listing.guests + ' guests';
+      document.getElementById('locationNoteText').innerHTML    =
+        '📍 ' + (listing.area || listing.city) + '<br/><small>Exact address shared after booking confirmation.</small>';
+
+      // Photos — rebuild gallery with real images or emoji
+      const mainEl = document.getElementById('galleryMain');
+      const thumbsEl = document.getElementById('galleryThumbs');
+      if (listing.photos && listing.photos.length > 0) {
+        mainEl.innerHTML = `<img src="${listing.photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" alt="${listing.title}"/>`;
+        thumbsEl.innerHTML = listing.photos.map((p, i) =>
+          `<div class="gallery-thumb ${i===0?'active':''}" onclick="switchPhoto('${p}', this)">
+            <img src="${p}" style="width:100%;height:100%;object-fit:cover;" alt="Photo ${i+1}"/>
+          </div>`
+        ).join('');
+      }
+
+      // Availability days
+      if (listing.availability && listing.availability.length > 0) {
+        const ALL = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        document.getElementById('availDays').innerHTML = ALL.map(d =>
+          `<span class="avail-day ${listing.availability.includes(d) ? 'active' : ''}">${d}</span>`
+        ).join('');
+      }
+
+      // Amenities
+      const amenityEmoji = { wifi:'📶', parking:'🅿️', shower:'🚿', towels:'🛁', ac:'❄️', music:'🎵', locker:'🔒', snacks:'🍿' };
+      if (listing.amenities && listing.amenities.length > 0) {
+        document.getElementById('includedGrid').innerHTML =
+          listing.amenities.map(a => `<div class="included-item">✅ ${amenityEmoji[a] || ''} ${a.charAt(0).toUpperCase()+a.slice(1)}</div>`).join('');
+      }
+
+      updateBreakdown();
+
+      // ── Render Leaflet detail map ──
+      renderDetailMap(listing.lat, listing.lng);
+
+      // ── Load and render reviews ──
+      const reviews = await getReviews(listingId);
+      renderReviews(reviews);
+
+      // ── Render write-a-review form (login gated) ──
+      renderReviewForm(listingId);
+
+    } catch (err) {
+      console.error('Failed to load listing:', err);
+    }
+  }
+
+  // ── LEAFLET DETAIL MAP (non-interactive) ──
+  function renderDetailMap(lat, lng) {
+    if (!lat || !lng) return;
+    const mapEl = document.getElementById('locationMap');
+    if (!mapEl) return;
+    if (detailMap) { detailMap.remove(); detailMap = null; }
+
+    detailMap = L.map('locationMap', {
+      dragging: false,
+      touchZoom: false,
+      doubleClickZoom: false,
+      scrollWheelZoom: false,
+      zoomControl: false,
+      keyboard: false
+    }).setView([parseFloat(lat), parseFloat(lng)], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19
+    }).addTo(detailMap);
+
+    L.marker([parseFloat(lat), parseFloat(lng)]).addTo(detailMap);
+  }
+
+  // ── RENDER REVIEWS ──
+  function renderReviews(reviews) {
+    const listEl = document.getElementById('reviewsList');
+    const summaryEl = document.getElementById('reviewsSummary');
+    const countEl = document.getElementById('reviewCount');
+    const ratingEl = document.getElementById('detailRating');
+
+    if (!reviews || reviews.length === 0) {
+      countEl.textContent = '(0)';
+      ratingEl.textContent = '⭐ No reviews yet';
+      summaryEl.innerHTML = '';
+      listEl.innerHTML = `
+        <div class="reviews-empty">
+          <div>💬</div>
+          <p>No reviews yet. Be the first to review this listing!</p>
+        </div>`;
+      return;
+    }
+
+    // Calculate summary stats
+    const count = reviews.length;
+    const avg = reviews.reduce((s, r) => s + r.rating, 0) / count;
+    const avgStr = avg.toFixed(1);
+
+    countEl.textContent = `(${count})`;
+    ratingEl.textContent = `⭐ ${avgStr} (${count} review${count !== 1 ? 's' : ''})`;
+
+    // Rating distribution
+    const dist = [0,0,0,0,0]; // index 0-4 = stars 1-5
+    reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) dist[r.rating-1]++; });
+
+    summaryEl.innerHTML = `
+      <div class="reviews-summary">
+        <div>
+          <div class="reviews-score">${avgStr}</div>
+          <div class="reviews-score-sub">out of 5</div>
+        </div>
+        <div class="reviews-breakdown">
+          ${[5,4,3,2,1].map(star => {
+            const pct = count > 0 ? Math.round((dist[star-1]/count)*100) : 0;
+            return `<div class="review-bar-row">
+              <span>${star} ★</span>
+              <div class="review-bar"><div class="review-bar-fill" style="width:${pct}%"></div></div>
+              <span>${dist[star-1]}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+
+    // Render review cards
+    listEl.innerHTML = reviews.map(r => {
+      const initial = (r.reviewerName || 'U').charAt(0).toUpperCase();
+      const stars = '⭐'.repeat(Math.min(5, Math.max(1, Math.round(r.rating))));
+      const dateStr = r.createdAt
+        ? new Date(r.createdAt.seconds ? r.createdAt.seconds * 1000 : r.createdAt).toLocaleDateString('en-IN', { month:'long', year:'numeric' })
+        : '—';
+      return `
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-avatar">${initial}</div>
+            <div>
+              <div class="review-name">${r.reviewerName || 'Anonymous'}</div>
+              <div class="review-date">${dateStr}</div>
+            </div>
+            <div class="review-stars">${stars}</div>
+          </div>
+          <p class="review-text">${r.text || ''}</p>
+        </div>`;
+    }).join('');
+  }
+
+  // ── WRITE-A-REVIEW FORM ──
+  function renderReviewForm(listingId) {
+    const container = document.getElementById('reviewFormContainer');
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        container.innerHTML = `
+          <div class="review-login-note">
+            <a href="login.html">Log in</a> to write a review for this listing.
+          </div>`;
+        return;
+      }
+
+      let selectedRating = 0;
+
+      container.innerHTML = `
+        <div class="review-form-section">
+          <h3>✍️ Write a Review</h3>
+          <div class="star-picker" id="starPicker">
+            <span data-val="1">⭐</span>
+            <span data-val="2">⭐</span>
+            <span data-val="3">⭐</span>
+            <span data-val="4">⭐</span>
+            <span data-val="5">⭐</span>
+          </div>
+          <textarea id="reviewText" placeholder="Share your experience with this listing…" rows="4"></textarea>
+          <div>
+            <button class="review-submit-btn" id="reviewSubmitBtn" onclick="submitReviewForm('${listingId}')">Submit Review</button>
+            <div class="review-form-error" id="reviewFormError"></div>
+            <div class="review-form-success" id="reviewFormSuccess"></div>
+          </div>
+        </div>`;
+
+      // Star picker interactivity
+      const stars = container.querySelectorAll('.star-picker span');
+      stars.forEach(star => {
+        star.addEventListener('click', () => {
+          selectedRating = parseInt(star.dataset.val);
+          stars.forEach((s, i) => s.classList.toggle('active', i < selectedRating));
+          container.dataset.rating = selectedRating;
+        });
+        star.addEventListener('mouseover', () => {
+          const hov = parseInt(star.dataset.val);
+          stars.forEach((s, i) => s.classList.toggle('active', i < hov));
+        });
+        star.addEventListener('mouseout', () => {
+          stars.forEach((s, i) => s.classList.toggle('active', i < selectedRating));
+        });
+      });
+    });
+  }
+
+  async function submitReviewForm(listingId) {
+    const container = document.getElementById('reviewFormContainer');
+    const rating = parseInt(container.dataset.rating || '0');
+    const text = document.getElementById('reviewText').value.trim();
+    const errEl = document.getElementById('reviewFormError');
+    const succEl = document.getElementById('reviewFormSuccess');
+    const btn = document.getElementById('reviewSubmitBtn');
+
+    errEl.textContent = '';
+    succEl.textContent = '';
+
+    if (!rating) { errEl.textContent = 'Please select a star rating.'; return; }
+    if (!text)   { errEl.textContent = 'Please write a brief review.'; return; }
+
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
+
+    try {
+      await submitReview(listingId, rating, text);
+      succEl.textContent = '✅ Review submitted! Thank you.';
+      document.getElementById('reviewText').value = '';
+      container.dataset.rating = '0';
+      container.querySelectorAll('.star-picker span').forEach(s => s.classList.remove('active'));
+
+      // Reload and re-render the reviews list
+      const reviews = await getReviews(listingId);
+      renderReviews(reviews);
+    } catch (err) {
+      errEl.textContent = 'Failed to submit review: ' + err.message;
+    } finally {
+      btn.textContent = 'Submit Review';
+      btn.disabled = false;
+    }
+  }
+
+  // ── GALLERY ──
+  function switchPhoto(src, thumb) {
+    const mainEl = document.getElementById('galleryMain');
+    mainEl.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" alt="Photo"/>`;
+    document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+    if (thumb) thumb.classList.add('active');
+  }
+
+  // Set min date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookingDate').min = today;
+
+  // ── SLOTS ──
+  function updateSlots() {
+    const date = document.getElementById('bookingDate').value;
+    if (!date) return;
+
+    const slots = [
+      '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+      '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM',
+      '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM',
+      '08:00 PM', '09:00 PM'
+    ];
+
+    // TODO: fetch real booked slots from Firestore for this listing + date
+    const bookedSlots = [];
+
+    document.getElementById('slotsGrid').innerHTML = slots.map(slot => {
+      const isBooked = bookedSlots.includes(slot);
+      return `
+        <button
+          class="slot-btn ${isBooked ? 'booked' : ''}"
+          onclick="${isBooked ? '' : `selectSlot('${slot}', this)`}"
+          ${isBooked ? 'disabled' : ''}>
+          ${slot}
+          ${isBooked ? '<span class="slot-booked-label">Booked</span>' : ''}
+        </button>`;
+    }).join('');
+  }
+
+  function selectSlot(slot, btn) {
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedSlot = slot;
+    updateBreakdown();
+  }
+
+  // ── DURATION ──
+  function changeDuration(delta) {
+    duration = Math.max(1, Math.min(12, duration + delta));
+    document.getElementById('durationDisplay').textContent =
+      duration + ' hour' + (duration > 1 ? 's' : '');
+    updateBreakdown();
+  }
+
+  // ── GUESTS ──
+  function changeGuests(delta) {
+    guests = Math.max(1, Math.min(maxGuests, guests + delta));
+    document.getElementById('guestsDisplay').textContent =
+      guests + ' guest' + (guests > 1 ? 's' : '');
+  }
+
+  // ── PRICE BREAKDOWN ──
+  function updateBreakdown() {
+    const subtotal = hourlyRate * duration;
+    const fee      = Math.round(subtotal * 0.10);
+    const total    = subtotal + fee;
+    if (document.getElementById('bwBreakdown'))
+      document.getElementById('bwBreakdown').style.display = 'flex';
+    if (document.getElementById('bwRateLabel'))
+      document.getElementById('bwRateLabel').textContent =
+        '₹' + hourlyRate + ' × ' + duration + ' hour' + (duration > 1 ? 's' : '');
+    if (document.getElementById('bwSubtotal'))
+      document.getElementById('bwSubtotal').textContent = '₹' + subtotal;
+    if (document.getElementById('bwFee'))
+      document.getElementById('bwFee').textContent = '₹' + fee;
+    if (document.getElementById('bwTotal'))
+      document.getElementById('bwTotal').textContent = '₹' + total;
+  }
+
+  // ── SHOW MORE DESC ──
+  let descExpanded = false;
+  function toggleDesc() {
+    descExpanded = !descExpanded;
+    const desc = document.getElementById('detailDesc');
+    desc.style.webkitLineClamp = descExpanded ? 'unset' : '3';
+    document.getElementById('showMoreBtn').textContent =
+      descExpanded ? 'Show less ↑' : 'Show more ↓';
+  }
+
+  // ── PROCEED TO BOOKING ──
+  function proceedToBooking() {
+    const date  = document.getElementById('bookingDate').value;
+    const error = document.getElementById('bookingError');
+
+    if (!date)         { error.textContent = 'Please select a date.'; return; }
+    if (!selectedSlot) { error.textContent = 'Please select a time slot.'; return; }
+    if (!currentListing) { error.textContent = 'Listing data not loaded.'; return; }
+
+    error.textContent = '';
+
+    const subtotal = hourlyRate * duration;
+    const fee      = Math.round(subtotal * 0.10);
+
+    // Pass booking details to booking.html via localStorage
+    localStorage.setItem('pendingBooking', JSON.stringify({
+      listingId:    currentListing.id,
+      ownerId:      currentListing.ownerId,
+      listingTitle: currentListing.title,
+      date,
+      slot:         selectedSlot,
+      duration,
+      guests,
+      price:        hourlyRate,
+      total:        subtotal + fee,
+    }));
+
+    window.location.href = 'booking.html';
+  }
+
+  // ── INIT ──
+  window.addEventListener('load', loadListing);
+</script>
+</body>
+</html>

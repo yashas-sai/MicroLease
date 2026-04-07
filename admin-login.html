@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .admin-login-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e1e2e;
+      color: #f87171;
+      border: 1px solid #3f3f5a;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .admin-auth-card {
+      border-top: 3px solid #dc2626 !important;
+    }
+    .admin-warning {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #991b1b;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="auth-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <a href="login.html" class="btn-outline">User Login</a>
+    </div>
+  </nav>
+
+  <!-- ADMIN LOGIN FORM -->
+  <div class="auth-container">
+    <div class="auth-card admin-auth-card">
+
+      <!-- HEADER -->
+      <div class="auth-header">
+        <div class="admin-login-badge">🛡️ Admin Access Only</div>
+        <h1>Admin Login</h1>
+        <p>This portal is restricted to MicroLease administrators</p>
+      </div>
+
+      <div class="admin-warning">
+        ⚠️ Unauthorized access attempts are logged and reported.
+      </div>
+
+      <!-- FORM -->
+      <div class="auth-form">
+
+        <div class="form-group">
+          <label for="email">Admin Email</label>
+          <input type="email" id="email" placeholder="admin@microlease.in" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="Enter admin password" />
+            <button class="toggle-password" id="togglePassword">👁</button>
+          </div>
+        </div>
+
+        <!-- ERROR MESSAGE -->
+        <div class="auth-error" id="authError"></div>
+
+        <button class="btn-primary btn-full" id="loginBtn"
+          style="background:#dc2626;">
+          🔐 Access Admin Panel
+        </button>
+
+      </div>
+
+      <!-- FOOTER -->
+      <p class="auth-footer-text">
+        Not an admin? <a href="login.html">Go to user login</a>
+      </p>
+
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="auth-side" style="background: linear-gradient(135deg, #1e1e2e 0%, #2d1b1b 100%);">
+      <div class="auth-side-content">
+        <div class="auth-side-badge" style="background:rgba(220,38,38,0.2);color:#f87171;">🛡️ Restricted Zone</div>
+        <h2>MicroLease Admin Panel</h2>
+        <p>Manage users, listings, bookings, KYC verifications and platform integrity from one place.</p>
+        <div class="auth-side-features">
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>User management & bans</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>KYC review & approvals</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Escrow & payment oversight</span>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">✓</span>
+            <span>Fraud report resolution</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- MicroLease app -->
+  <script src="js/app.js"></script>
+
+  <script>
+    // If already logged in as admin, skip login screen
+    auth.onAuthStateChanged((user) => {
+      if (user && ADMIN_EMAILS.includes(user.email)) {
+        window.location.href = 'admin.html';
+      }
+    });
+
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+      const input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    });
+
+    function showError(msg) {
+      const el = document.getElementById('authError');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    // Admin Email Login
+    document.getElementById('loginBtn').addEventListener('click', async function() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email)    return showError('Please enter your admin email.');
+      if (!password) return showError('Please enter your password.');
+
+      // Pre-check: warn immediately if email isn't in admin list
+      if (!ADMIN_EMAILS.includes(email)) {
+        return showError('This email is not registered as an admin account.');
+      }
+
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = 'Authenticating...';
+      btn.disabled = true;
+
+      try {
+        await signInWithEmail(email, password);
+        // requireAdmin() in admin.html will do the final check
+        window.location.href = 'admin.html';
+      } catch (err) {
+        btn.textContent = '🔐 Access Admin Panel';
+        btn.disabled = false;
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password'
+            || err.code === 'auth/invalid-credential') {
+          showError('Invalid credentials. Access denied.');
+        } else if (err.code === 'auth/too-many-requests') {
+          showError('Too many failed attempts. Please try again later.');
+        } else {
+          showError(err.message);
+        }
+      }
+    });
+
+    // Allow pressing Enter to submit
+    document.getElementById('password').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
+  </script>
+</body>
+</html>

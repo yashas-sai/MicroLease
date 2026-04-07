@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discover Amenities — MicroLease</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    /* Override map container to fill properly with Leaflet */
+    #leafletMap { width: 100%; height: 100%; }
+
+    /* Ensure the Leaflet map canvas sits at the base of its container's
+       stacking context — never bleeds above sibling UI panels */
+    #leafletMap .leaflet-pane,
+    #leafletMap .leaflet-tile-pane { z-index: 200; }
+
+    /* The map-container establishes a stacking context at z-index 0
+       within the map-layout flex row */
+    .map-container {
+      position: relative;
+      z-index: 0;
+      isolation: isolate;   /* creates a new stacking context — no leakage */
+    }
+
+    /* Sidebar must sit above the map container in the flex row */
+    .map-sidebar {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Map controls (📍 🛰️) — above Leaflet's own controls (z 1000) */
+    .map-controls {
+      position: absolute;
+      z-index: 1050;
+    }
+
+    /* Listing detail popup — must be above Leaflet layers and controls */
+    .map-popup {
+      position: absolute;
+      z-index: 1100;
+      /* Ensure nothing clips the "View Details" button at the bottom */
+      overflow: visible;
+    }
+
+    /* The popup body (containing the button) must not be clipped */
+    .popup-body {
+      overflow: visible;
+    }
+
+    /* Custom marker labels */
+    .leaflet-marker-label {
+      background: white;
+      border: 2px solid #1a56db;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a56db;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+    .leaflet-marker-label:hover {
+      background: #1a56db;
+      color: white;
+    }
+
+    .leaflet-user-dot {
+      width: 18px; height: 18px;
+      background: #1a56db;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(26,86,219,0.5);
+    }
+  </style>
+</head>
+<body class="map-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">Micro<span>Lease</span></a>
+    <div class="nav-links">
+      <a href="booking-history.html" class="nav-link-plain">My Bookings</a>
+      <a href="owner-dashboard.html" class="nav-link-plain">Dashboard</a>
+      <div class="nav-avatar" id="navAvatar">U</div>
+    </div>
+  </nav>
+
+  <!-- MAP LAYOUT -->
+  <div class="map-layout">
+
+    <!-- LEFT PANEL: FILTERS + LISTINGS -->
+    <div class="map-sidebar">
+
+      <!-- SEARCH -->
+      <div class="map-search-box">
+        <span class="map-search-icon">🔍</span>
+        <input type="text" id="searchInput"
+          placeholder="Search by area, amenity type..."
+          oninput="filterListings()"/>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="map-filters">
+        <div class="filter-scroll">
+          <button class="map-filter-btn active" onclick="setTypeFilter('all', this)">
+            All
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('pool', this)">
+            🏊 Pool
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('gym', this)">
+            🏋️ Gym
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('theater', this)">
+            🎬 Theater
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('garden', this)">
+            🌿 Garden
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('sauna', this)">
+            🧖 Sauna
+          </button>
+          <button class="map-filter-btn" onclick="setTypeFilter('gameroom', this)">
+            🎮 Game Room
+          </button>
+        </div>
+      </div>
+
+      <!-- PRICE FILTER -->
+      <div class="price-filter-row">
+        <span class="price-filter-label">Max price:</span>
+        <input type="range" id="priceRange" min="100" max="5000"
+          value="5000" step="100" oninput="updatePriceFilter(this.value)"/>
+        <span class="price-filter-value" id="priceValue">₹5000/hr</span>
+      </div>
+
+      <!-- RESULTS COUNT -->
+      <div class="results-count">
+        <span id="resultsCount">0 amenities</span> near you
+        <button class="sort-btn" onclick="toggleSort()">
+          ⇅ <span id="sortLabel">Nearest</span>
+        </button>
+      </div>
+
+      <!-- LISTINGS LIST -->
+      <div class="map-listings-list" id="listingsList">
+        <div class="map-loading">
+          <div class="loading-spinner"></div>
+          <p>Finding amenities near you...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: MAP -->
+    <div class="map-container">
+      <div id="leafletMap"></div>
+
+      <!-- MAP CONTROLS -->
+      <div class="map-controls">
+        <button class="map-control-btn" onclick="centerOnUser()" title="My Location">
+          📍
+        </button>
+        <button class="map-control-btn" onclick="toggleMapType()" title="Satellite View">
+          🛰️
+        </button>
+      </div>
+
+      <!-- LISTING POPUP (shows when pin clicked) -->
+      <div class="map-popup" id="mapPopup" style="display:none">
+        <button class="popup-close" onclick="closePopup()">✕</button>
+        <div class="popup-photo" id="popupPhoto">🏊</div>
+        <div class="popup-body">
+          <div class="popup-type" id="popupType">Pool</div>
+          <div class="popup-title" id="popupTitle">Listing Title</div>
+          <div class="popup-meta">
+            <span id="popupLocation">📍 Area</span>
+            <span id="popupDistance">• 0.0 km</span>
+          </div>
+          <div class="popup-price" id="popupPrice">₹499/hr</div>
+          <div class="popup-badges">
+            <span class="popup-badge verified">✓ Verified</span>
+            <span class="popup-badge instant" id="popupInstant">⚡ Instant</span>
+          </div>
+          <a href="listing-detail.html" class="btn-primary btn-full popup-btn"
+            id="popupLink">
+            View Details →
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- MicroLease app -->
+  <script src="js/app.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  let allListings = [];
+  let filteredListings = [];
+  let activeTypeFilter = 'all';
+  let maxPrice = 5000;
+  let searchQuery = '';
+  let sortNearest = true;
+  let map = null;
+  let markers = [];
+  let isSatellite = false;
+  let tileLayer = null;
+  let userLat = 17.4350;
+  let userLng = 78.3866;
+
+  const EMOJI = { pool:'🏊', gym:'🏋️', theater:'🎬', garden:'🌿', sauna:'🧖', gameroom:'🎮' };
+
+  const OSM_TILE   = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const SAT_TILE   = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+  const OSM_ATTR   = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const SAT_ATTR   = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+
+  // ── INITIALIZE LEAFLET MAP ──
+  function initMap() {
+    map = L.map('leafletMap', {
+      center: [userLat, userLng],
+      zoom: 13,
+      zoomControl: true
+    });
+
+    tileLayer = L.tileLayer(OSM_TILE, { attribution: OSM_ATTR, maxZoom: 19 }).addTo(map);
+
+    // User location dot
+    const userIcon = L.divIcon({
+      className: '',
+      html: '<div class="leaflet-user-dot"></div>',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
+    L.marker([userLat, userLng], { icon: userIcon, title: 'You are here', zIndexOffset: 1000 }).addTo(map);
+
+    updateMarkers();
+    getUserLocation();
+  }
+
+  // ── LOAD LISTINGS FROM FIRESTORE ──
+  async function loadListings() {
+    try {
+      allListings = await getAllListings();
+      allListings = allListings.map(l => ({
+        ...l,
+        emoji: EMOJI[l.type] || '🏠',
+        distance: calcDistance(userLat, userLng, l.lat, l.lng)
+      }));
+      filteredListings = [...allListings];
+      filterListings();
+    } catch (err) {
+      document.getElementById('listingsList').innerHTML =
+        `<div class="map-empty"><p>Failed to load listings: ${err.message}</p></div>`;
+    }
+  }
+
+  function calcDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+  }
+
+  // ── FILTER LOGIC ──
+  function filterListings() {
+    searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    filteredListings = allListings.filter(l => {
+      const matchType   = activeTypeFilter === 'all' || l.type === activeTypeFilter;
+      const matchPrice  = l.price <= maxPrice;
+      const matchSearch = !searchQuery ||
+        l.title.toLowerCase().includes(searchQuery) ||
+        (l.area || '').toLowerCase().includes(searchQuery) ||
+        l.type.toLowerCase().includes(searchQuery);
+      return matchType && matchPrice && matchSearch;
+    });
+    if (sortNearest) {
+      filteredListings.sort((a, b) => a.distance - b.distance);
+    } else {
+      filteredListings.sort((a, b) => a.price - b.price);
+    }
+    renderListings();
+    updateMarkers();
+  }
+
+  function setTypeFilter(type, btn) {
+    document.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTypeFilter = type;
+    filterListings();
+  }
+
+  function updatePriceFilter(val) {
+    maxPrice = parseInt(val);
+    document.getElementById('priceValue').textContent =
+      val >= 5000 ? 'Any' : '₹' + val + '/hr';
+    filterListings();
+  }
+
+  function toggleSort() {
+    sortNearest = !sortNearest;
+    document.getElementById('sortLabel').textContent = sortNearest ? 'Nearest' : 'Cheapest';
+    filterListings();
+  }
+
+  // ── RENDER LISTING CARDS ──
+  function renderListings() {
+    const container = document.getElementById('listingsList');
+    document.getElementById('resultsCount').textContent =
+      filteredListings.length + ' amenit' + (filteredListings.length === 1 ? 'y' : 'ies');
+
+    if (filteredListings.length === 0) {
+      container.innerHTML = `
+        <div class="map-empty">
+          <div style="font-size:40px;">😕</div>
+          <h3>No amenities found</h3>
+          <p>Try adjusting your filters or search term</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filteredListings.map(l => {
+      const photo = (l.photos && l.photos.length > 0)
+        ? `<img src="${l.photos[0]}" style="width:100%;height:100%;object-fit:cover;" alt="${l.title}"/>`
+        : l.emoji;
+      return `
+        <div class="map-listing-card" onclick="selectListing('${l.id}')" id="card-${l.id}">
+          <div class="mlc-photo">${photo}</div>
+          <div class="mlc-body">
+            <div class="mlc-type">${l.emoji} ${l.type.charAt(0).toUpperCase() + l.type.slice(1)}</div>
+            <div class="mlc-title">${l.title}</div>
+            <div class="mlc-meta">
+              <span>📍 ${l.area || l.city}</span>
+              <span>• ${l.distance} km</span>
+              <span>• 👥 Up to ${l.guests}</span>
+            </div>
+            <div class="mlc-footer">
+              <div class="mlc-price">₹${l.price}<span>/hr</span></div>
+            </div>
+            <div class="mlc-badges">
+              ${l.verified ? '<span class="mlc-badge verified">✓ Verified</span>' : ''}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── SELECT LISTING ──
+  function selectListing(id) {
+    const listing = allListings.find(l => l.id === id);
+    if (!listing) return;
+    document.querySelectorAll('.map-listing-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('card-' + id);
+    if (card) { card.classList.add('selected'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+
+    // Popup photo: real image or emoji
+    const popupPhotoEl = document.getElementById('popupPhoto');
+    if (listing.photos && listing.photos.length > 0) {
+      popupPhotoEl.innerHTML = `<img src="${listing.photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="${listing.title}"/>`;
+    } else {
+      popupPhotoEl.textContent = listing.emoji;
+    }
+    document.getElementById('popupType').textContent     = listing.type.charAt(0).toUpperCase() + listing.type.slice(1);
+    document.getElementById('popupTitle').textContent    = listing.title;
+    document.getElementById('popupLocation').textContent = '📍 ' + (listing.area || listing.city);
+    document.getElementById('popupDistance').textContent = '• ' + listing.distance + ' km away';
+    document.getElementById('popupPrice').textContent    = '₹' + listing.price + '/hr';
+    document.getElementById('popupInstant').style.display = 'inline';
+    document.getElementById('popupLink').href = `listing-detail.html?id=${listing.id}`;
+    document.getElementById('mapPopup').style.display = 'block';
+    if (map) map.panTo([Number(listing.lat), Number(listing.lng)]);
+  }
+
+  function closePopup() {
+    document.getElementById('mapPopup').style.display = 'none';
+    document.querySelectorAll('.map-listing-card').forEach(c => c.classList.remove('selected'));
+  }
+
+  // ── LEAFLET MARKERS ──
+  function updateMarkers() {
+    markers.forEach(m => map && m.remove());
+    markers = [];
+    if (!map) return;
+
+    filteredListings.forEach(listing => {
+      const lat = Number(listing.lat);
+      const lng = Number(listing.lng);
+      if (!lat && !lng) return;
+
+      const labelHtml = `<div class="leaflet-marker-label">${listing.emoji} ₹${listing.price}</div>`;
+      const icon = L.divIcon({
+        className: '',
+        html: labelHtml,
+        iconAnchor: [0, 0]
+      });
+      const marker = L.marker([lat, lng], { icon, title: listing.title }).addTo(map);
+      marker.on('click', () => selectListing(listing.id));
+      markers.push(marker);
+    });
+  }
+
+  function centerOnUser() {
+    if (map) map.panTo([userLat, userLng]);
+  }
+
+  function toggleMapType() {
+    if (!map) return;
+    if (tileLayer) tileLayer.remove();
+    if (isSatellite) {
+      tileLayer = L.tileLayer(OSM_TILE, { attribution: OSM_ATTR, maxZoom: 19 }).addTo(map);
+    } else {
+      tileLayer = L.tileLayer(SAT_TILE, { attribution: SAT_ATTR, maxZoom: 19 }).addTo(map);
+    }
+    isSatellite = !isSatellite;
+  }
+
+  function getUserLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      if (map) map.panTo([userLat, userLng]);
+      // Recalculate distances with real location
+      allListings = allListings.map(l => ({
+        ...l, distance: calcDistance(userLat, userLng, l.lat, l.lng)
+      }));
+      filterListings();
+    });
+  }
+
+  // ── INIT ──
+  window.addEventListener('load', () => {
+    initMap();
+    loadListings();
+  });
+</script>
+
+</body>
+</html>
